@@ -73,7 +73,8 @@ class Search_model extends Base_module_model {
 			{
 				foreach($full_text_fields as $field)
 				{
-					$this->db->or_where('LOWER('.$field.') LIKE "%'.$q.'%"');
+					$w = $this->db->escape($w);
+					$this->db->or_where('LOWER('.$field.') LIKE "%'.$w.'%"');
 				}
 			}
 
