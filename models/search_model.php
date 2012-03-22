@@ -28,7 +28,6 @@ class Search_model extends Base_module_model {
 			$this->db->offset($offset);
 		}
 		$results = $this->find_all();
-		//$this->debug_query();
 		return $results;
 	}
 	
@@ -48,10 +47,11 @@ class Search_model extends Base_module_model {
 		$q = trim(strtolower($q)); // trim the right and left from whitespace
 		$q = preg_replace("#([[:space:]]{2,})#",' ',$q); // remove multiple spaces
 		$q_len = strlen($q);
+		
+		
 		if ($q_len >= 4 AND (strtolower($CI->fuel->search->config('query_type')) == 'match' OR strtolower($CI->fuel->search->config('query_type')) == 'match boolean'))
 		{
 			$q = $this->db->escape($q);
-			
 			if (strtolower($CI->fuel->search->config('query_type')) == 'match boolean')
 			{
 				$this->db->where('MATCH('.$full_text_indexed.') AGAINST ('.$q.' IN BOOLEAN MODE)');
@@ -68,14 +68,10 @@ class Search_model extends Base_module_model {
 		}
 		else
 		{
-			$words = explode(' ', $q);
-			foreach($words as $w)
+			$q = $this->db->escape_str($q);
+			foreach($full_text_fields as $field)
 			{
-				foreach($full_text_fields as $field)
-				{
-					$w = $this->db->escape($w);
-					$this->db->or_where('LOWER('.$field.') LIKE "%'.$w.'%"');
-				}
+				$this->db->or_where('LOWER('.$field.') LIKE "%'.$q.'%"');
 			}
 
 			$this->db->order_by('date_added desc');
