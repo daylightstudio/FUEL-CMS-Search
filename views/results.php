@@ -1,4 +1,5 @@
-<?php fuel_set_var('layout', 'none'); ?>
+<?php fuel_set_var('layout', 'main'); ?>
+<?php fuel_set_var('page_title', 'Search Results'); ?>
 
 <div class="sidebar_layout clearfix">
 	<header>
@@ -7,6 +8,7 @@
 	</header>
 
 	<article id="main">
+	
 		<ul id="search_results" class="row">
 		
 		<?php if (!empty($results)) : ?>
@@ -21,33 +23,25 @@
 		
 		<?php else : ?>
 
-		<li>
-			<p>No search results found.</p>
-		</li>
+			<li>
+				<p>No search results found.</p>
+			</li>
 
 		<?php endif; ?>
-
-
-		<ul id="pagination" class="row">
-			<li class="next_prev disabled">Prev</li>
-			<li class="active"><a href="">1</a></li>
-			<li><a href="">2</a></li>
-			<li><a href="">3</a></li>
-			<li><a href="">4</a></li>
-			<li><a href="">5</a></li>
-			<li class="next_prev"><a href="">Next</a></li>
+		
 		</ul>
+
+		<?=$pagination?>
+	
 	</article>
 	
 	<aside id="sidebar">
-		<?=$this->form->open(array('action' => site_url('search'), 'method' => 'get'))?>
+		<form action="<?=site_url('search')?>" method="get">
 		<div class="searchbox">
 			<h3>Search again</h3>
 			<input type="text" name="q" placeholder="Type here..." />
-			<input type="submit" class="ir" />
+			<input type="submit" value="Search" />
 		</div>
-		<?=$this->form->close()?>
+		</form>
 	</aside>
 </div>
-	
-

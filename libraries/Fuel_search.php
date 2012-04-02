@@ -18,7 +18,7 @@
 
 /**
  * FUEL search library
- *
+ * 
  * @package		FUEL CMS
  * @subpackage	Libraries
  * @category	Libraries
