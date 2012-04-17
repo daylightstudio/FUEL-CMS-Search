@@ -87,6 +87,7 @@ class Search_model extends Base_module_model {
 	{
 		$fields = parent::form_fields($values, $related);
 		$fields['content']['class'] = 'no_editor';
+		$fields['content']['type'] = 'text';
 		return $fields;
 	}
 	
