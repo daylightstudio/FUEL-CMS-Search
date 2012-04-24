@@ -62,3 +62,8 @@ $config['search']['pagination'] = array(
 		'first_link' => lang('search_first_link'),
 		'last_link' => lang('search_last_link'),
 	);
+
+$config['search']['settings'] = array();
+$config['search']['settings']['user_agent'] = array();
+$config['search']['settings']['delimiters'] = array('default' => '<div id="main">');
+$config['search']['settings']['query_type'] = array('type' => 'select', 'options' => array('match' => 'match', 'match boolean' => 'match boolean', 'like' => 'like'));

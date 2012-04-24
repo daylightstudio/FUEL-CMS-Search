@@ -8,7 +8,7 @@
  *
  * @package		FUEL CMS
  * @author		David McReynolds @ Daylight Studio
- * @copyright	Copyright (c) 2011, Run for Daylight LLC.
+ * @copyright	Copyright (c) 2012, Run for Daylight LLC.
  * @license		http://www.getfuelcms.com/user_guide/general/license
  * @link		http://www.getfuelcms.com
  * @filesource
@@ -32,7 +32,6 @@ class Fuel_search extends Fuel_advanced_module {
 	public $timeout = 20; // CURL timeout
 	public $connect_timeout = 10; // CURL connection timeout
 	public $title_limit = 100; // max character limit of the title of content
-	public $user_agent = 'FUEL'; // the user agent used for indexing
 	public $q = ''; // search term
 	
 	protected $_logs = array(); // log of items indexed
@@ -507,7 +506,7 @@ class Fuel_search extends Fuel_advanced_module {
 				if (preg_match('/^user-agent:([^#]+)/i', $l, $matches1))
 				{
 					$agent = trim($matches1[1]);
-					$check = ($agent == '*' OR $agent == $this->user_agent) ? TRUE : FALSE;
+					$check = ($agent == '*' OR $agent == $this->config('user_agent')) ? TRUE : FALSE;
 				}
 
 				// check disallow
@@ -559,14 +558,14 @@ class Fuel_search extends Fuel_advanced_module {
 		}
 
 		$this->CI->curl->initialize();
-		
+
 		$opts = array(
 						CURLOPT_URL => $url,
 						CURLOPT_RETURNTRANSFER => TRUE,
 						CURLOPT_TIMEOUT => $this->timeout,
 						CURLOPT_CONNECTTIMEOUT => $this->connect_timeout,
 						CURLOPT_BINARYTRANSFER => TRUE,
-						CURLOPT_USERAGENT => $this->user_agent,
+						CURLOPT_USERAGENT => $this->config('user_agent'),
 					);
 		if ($just_header)
 		{
