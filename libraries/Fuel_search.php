@@ -664,6 +664,9 @@ class Fuel_search extends Fuel_advanced_module {
 		
 		// get delimiters
 		$delimiters = $this->config('delimiters');
+
+		if ( ! is_array($delimiters)) $delimiters = array($delimiters);
+
 		foreach($delimiters as $d)
 		{
 			// get the xpath equation for querying if it is not already in xpath format
