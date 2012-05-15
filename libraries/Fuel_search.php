@@ -33,6 +33,7 @@ class Fuel_search extends Fuel_advanced_module {
 	public $connect_timeout = 10; // CURL connection timeout
 	public $title_limit = 100; // max character limit of the title of content
 	public $q = ''; // search term
+	public $auto_ignore = array('sitemap.xml', 'robots.txt', 'search'); // pages to ignore when determining if indexable
 	
 	protected $_logs = array(); // log of items indexed
 	
@@ -263,13 +264,7 @@ class Fuel_search extends Fuel_advanced_module {
 	function is_indexable($location)
 	{
 		// sitemap.xml and robots.txt locations are automatically ignored
-		$auto_ignore = array(
-			'sitemap.xml',
-			'robots.txt',
-			'search',
-		);
-		
-		if (in_array($location, $auto_ignore) OR !$this->is_local_url($location))
+		if (in_array($location, $this->auto_ignore) OR !$this->is_local_url($location))
 		{
 			return FALSE;
 		}
@@ -333,6 +328,7 @@ class Fuel_search extends Fuel_advanced_module {
 		// index the content at the same time to save on CURL bandwidth
 		if (!empty($html))
 		{
+			$indexed = FALSE;
 			if ($index_content)
 			{
 				$indexed = $this->index_page($location, $html);
@@ -664,6 +660,9 @@ class Fuel_search extends Fuel_advanced_module {
 		
 		// get delimiters
 		$delimiters = $this->config('delimiters');
+
+		if ( ! is_array($delimiters)) $delimiters = array($delimiters);
+
 		foreach($delimiters as $d)
 		{
 			// get the xpath equation for querying if it is not already in xpath format
@@ -834,13 +833,18 @@ class Fuel_search extends Fuel_advanced_module {
 		{
 			return FALSE;
 		}
-
+		
 		$saved = $this->CI->search_model->save($values);
 
 		if ($saved)
 		{
 			$msg = lang('search_log_index_created', $values['location']);
-			$this->log_message($msg, self::LOG_INDEXED);
+			
+			// to prevent multiple home pages appearing in the logs
+			if (!isset($this->_logs[self::LOG_INDEXED]) OR (isset($this->_logs[self::LOG_INDEXED]) AND !in_array($msg, $this->_logs[self::LOG_INDEXED])))
+			{
+				$this->log_message($msg, self::LOG_INDEXED);
+			}
 			return TRUE;
 		}
 		return FALSE;
@@ -976,13 +980,13 @@ class Fuel_search extends Fuel_advanced_module {
 	 * Used when printing out the index log informaiton
 	 *
 	 * @access	public
-	 * @param	object	search record
-	 * @param	string
+	 * @param	string	Log message
+	 * @param	string	Type of log message
 	 * @return	void
 	 */	
-	function log_message($rec, $type = self::LOG_ERROR)
+	function log_message($msg, $type = self::LOG_ERROR)
 	{
-		$this->_logs[$type][] = $rec;
+		$this->_logs[$type][] = $msg;
 	}
 	
 	// --------------------------------------------------------------------
