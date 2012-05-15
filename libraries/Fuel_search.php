@@ -329,11 +329,15 @@ class Fuel_search extends Fuel_advanced_module {
 		if (!empty($html))
 		{
 			$indexed = FALSE;
+			
+			$loc = $this->get_location($location);
 			if ($index_content)
 			{
 				$indexed = $this->index_page($location, $html);
+				$url = $this->get_location($location);
+				$crawled[$url] = $url;
 			}
-			
+		
 			// the page must be properly indexed above to continue on
 			if ($indexed)
 			{
@@ -341,13 +345,13 @@ class Fuel_search extends Fuel_advanced_module {
 				preg_match_all("/<a(?:[^>]*)href=\"([^\"]*)\"(?:[^>]*)>(?:[^<]*)<\/a>/is", $html, $matches);
 				if (!empty($matches[1]))
 				{
+					$loc = $this->get_location($location);
 					foreach($matches[1] as $url)
 					{
-						
 						// remove page anchors
 						$url_arr = explode('#', $url);
 						$url = $this->get_location($url_arr[0]);
-						
+
 						// check if the url is local AND whether it has already been indexed
 						if (!isset($crawled[$url]))
 						{
@@ -356,6 +360,10 @@ class Fuel_search extends Fuel_advanced_module {
 
 							// now recursively crawl
 							$this->crawl_pages($url);
+							
+							// add the url in the indexed array
+							$crawled[$url] = $url;
+
 						}
 					}
 				}
@@ -839,12 +847,7 @@ class Fuel_search extends Fuel_advanced_module {
 		if ($saved)
 		{
 			$msg = lang('search_log_index_created', $values['location']);
-			
-			// to prevent multiple home pages appearing in the logs
-			if (!isset($this->_logs[self::LOG_INDEXED]) OR (isset($this->_logs[self::LOG_INDEXED]) AND !in_array($msg, $this->_logs[self::LOG_INDEXED])))
-			{
-				$this->log_message($msg, self::LOG_INDEXED);
-			}
+			$this->log_message($msg, self::LOG_INDEXED);
 			return TRUE;
 		}
 		return FALSE;
