@@ -32,9 +32,16 @@ class Search_module extends Module {
 			$vars['crawled'] = $this->fuel->search->index(FALSE, 'pages', TRUE);
 		}
 		
-		//$vars['log'] = $this->fuel->search->logs();
-		$vars['log_msg'] = $this->fuel->search->display_log('all', 'span', TRUE);
-		$this->load->module_view(SEARCH_FOLDER, '_admin/index_results', $vars);
+		if (is_ajax())
+		{
+			$output = $this->fuel->search->display_log('all', '', TRUE);
+			$this->output->set_output($output);
+		}
+		else
+		{
+			$vars['log_msg'] = $this->fuel->search->display_log('all', 'span', TRUE);
+			$this->load->module_view(SEARCH_FOLDER, '_admin/index_results', $vars);
+		}
 	}
 	
 }

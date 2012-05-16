@@ -251,7 +251,11 @@ class Fuel_search extends Fuel_advanced_module {
 			foreach($pages as $location)
 			{
 				// find indexable content in the html and create the index in the database
-				$this->index_page($location);
+				if (!$this->index_page($location))
+				{
+					// if not indexed then remove it if it exists
+					$this->remove($location);
+				}
 			}
 			return $pages;
 		}
