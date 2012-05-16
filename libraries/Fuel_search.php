@@ -119,25 +119,23 @@ class Fuel_search extends Fuel_advanced_module {
 		// grab the config values for what should be indexed on save
 		$index_modules = $this->config('index_modules');
 		$module = $this->CI->module;
-		
+
 		// check if modules can be indexed. If an array is provided, then we only index those in the array
 		if ($index_modules === TRUE OR (is_array($index_modules) AND isset($index_modules[$module])))
 		{
 			$module_obj = $this->CI->fuel->modules->get($module);
 			$location = $module_obj->url($posted);
 
-			// now index the page
+			// now index the page... this takes too long
 			//$this->index($location, $module);
 			
 			// use ajax to speed things up
-			$output = lang('data_saved').'<script type="text/javascript">
-			//<![CDATA[
+			$output = lang('data_saved').'{script}
 				$(function(){
 					$.get("'.fuel_url('tools/search/index_site').'?pages='.$location.'")
 				});
-			//]]>
-			</script>';
-			$this->CI->session->set_flashdata('success', $output);
+			{/script}';
+			$this->fuel->admin->set_notification($output, Fuel_admin::NOTIFICATION_SUCCESS);
 		}
 	}	
 
