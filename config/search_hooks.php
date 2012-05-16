@@ -18,9 +18,9 @@ $hook['after_save_module'] = array(
 								'params'   => array(),
 								'module' => 'search',
 								);
-$hook['after_delete_module'] = array(
+$hook['before_delete_module'] = array(
 								'class'    => 'Fuel_search',
-								'function' => 'after_delete_hook',
+								'function' => 'before_delete_hook',
 								'filename' => 'Fuel_search.php',
 								'filepath' => 'libraries',
 								'params'   => array(),

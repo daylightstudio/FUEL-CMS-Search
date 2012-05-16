@@ -150,36 +150,29 @@ class Fuel_search extends Fuel_advanced_module {
 	 * @param	object	search record
 	 * @return	boolean
 	 */	
-	function after_delete_hook($posted)
+	function before_delete_hook($posted)
 	{
-		if (empty($posted['location']))
+		// grab the config values for what should be deleted
+		$index_modules = $this->config('index_modules');
+		$module = $this->CI->module;
+
+		// check if modules can be indexed. If an array is provided, then we only delete those in the array
+		if (($index_modules === TRUE OR (is_array($index_modules) AND isset($index_modules[$module])))  AND $module != 'search')
 		{
-			// grab the config values for what should be deleted
-			$index_modules = $this->config('index_modules');
-			$module = $this->CI->module;
-			
-			// check if modules can be indexed. If an array is provided, then we only delete those in the array
-			if ($index_modules === TRUE OR (is_array($index_modules) AND isset($index_modules[$module])))
+			$module_obj = $this->CI->fuel->modules->get($module, FALSE);
+			$key_field = $module_obj->model()->key_field();
+			if (is_array($posted))
 			{
-				$module_obj = $this->CI->fuel->modules->get($module);
-				$key_field = $module_obj->model()->key_field();
-				if (is_array($posted))
+				foreach($posted as $key => $val)
 				{
-					foreach($posted as $key => $val)
+					if (is_int($key))
 					{
-						if (is_int($key))
-						{
-							$data = array($key_field => $val);
-							$location = $module_obj->url($data);
-						}
+						$data = $module_obj->model()->find_by_key($val, 'array');
+						$location = $module_obj->url($data);
 					}
 				}
-				$this->remove($location);
 			}
-		}
-		else
-		{
-			$this->remove($posted['location']);
+			$this->remove($location);
 		}
 	}	
 
