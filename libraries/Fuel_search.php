@@ -124,18 +124,37 @@ class Fuel_search extends Fuel_advanced_module {
 		if (($index_modules === TRUE OR (is_array($index_modules) AND isset($index_modules[$module]))) AND $module != 'search')
 		{
 			$module_obj = $this->CI->fuel->modules->get($module, FALSE);
-			$location = $module_obj->url($posted);
-
-			// now index the page... this takes too long
-			//$this->index($location, $module);
-
-			// use ajax to speed things up
-			$output = lang('data_saved').'{script}
-				$(function(){
-					$.get("'.fuel_url('tools/search/index_site').'?pages='.$location.'")
-				});
-			{/script}';
-			$this->fuel->admin->set_notification($output, Fuel_admin::NOTIFICATION_SUCCESS);
+			$key_field = $module_obj->model()->key_field();
+			
+			if (!isset($posted[$key_field]))
+			{
+				return FALSE;
+			}
+			
+			$data = $module_obj->model()->find_by_key($posted[$key_field], 'array');
+			$location = $module_obj->url($data);
+			
+			if (!empty($location))
+			{
+				// now index the page... this takes too long
+				if (is_ajax())
+				{
+					if (!$this->index_page($location))
+					{
+						$this->remove($location);
+					}
+				}
+				else
+				{
+					// use ajax to speed things up
+					$output = lang('data_saved').'{script}
+						$(function(){
+							$.get("'.fuel_url('tools/search/index_site').'?pages='.$location.'")
+						});
+					{/script}';
+					$this->fuel->admin->set_notification($output, Fuel_admin::NOTIFICATION_SUCCESS);
+				}
+			}
 		}
 	}	
 
@@ -160,7 +179,6 @@ class Fuel_search extends Fuel_advanced_module {
 		if (($index_modules === TRUE OR (is_array($index_modules) AND isset($index_modules[$module])))  AND $module != 'search')
 		{
 			$module_obj = $this->CI->fuel->modules->get($module, FALSE);
-			$key_field = $module_obj->model()->key_field();
 			if (is_array($posted))
 			{
 				foreach($posted as $key => $val)
@@ -169,10 +187,13 @@ class Fuel_search extends Fuel_advanced_module {
 					{
 						$data = $module_obj->model()->find_by_key($val, 'array');
 						$location = $module_obj->url($data);
+						if (!empty($location))
+						{
+							$this->remove($location);
+						}
 					}
 				}
 			}
-			$this->remove($location);
 		}
 	}	
 
@@ -390,7 +411,6 @@ class Fuel_search extends Fuel_advanced_module {
 				return FALSE;
 			}
 		}
-		
 		// get the proper scope for the page
 		$scope = $this->get_location_scope($location);
 		
