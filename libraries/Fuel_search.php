@@ -121,14 +121,14 @@ class Fuel_search extends Fuel_advanced_module {
 		$module = $this->CI->module;
 
 		// check if modules can be indexed. If an array is provided, then we only index those in the array
-		if ($index_modules === TRUE OR (is_array($index_modules) AND isset($index_modules[$module])))
+		if (($index_modules === TRUE OR (is_array($index_modules) AND isset($index_modules[$module]))) AND $module != 'search')
 		{
-			$module_obj = $this->CI->fuel->modules->get($module);
+			$module_obj = $this->CI->fuel->modules->get($module, FALSE);
 			$location = $module_obj->url($posted);
 
 			// now index the page... this takes too long
 			//$this->index($location, $module);
-			
+
 			// use ajax to speed things up
 			$output = lang('data_saved').'{script}
 				$(function(){
