@@ -60,7 +60,7 @@ class Search_model extends Base_module_model {
 			{
 				$this->db->where('MATCH('.$full_text_indexed.') AGAINST ('.$q.')');
 			}
-			if (!$is_count)
+			if ( ! $is_count)
 			{
 				$this->db->select('match ('.$full_text_indexed.') against ('.$q.')  AS relevance ', FALSE);
 				$this->db->order_by('relevance desc');
@@ -69,12 +69,19 @@ class Search_model extends Base_module_model {
 		else
 		{
 			$q = $this->db->escape_str($q);
-			foreach($full_text_fields as $field)
-			{
-				$this->db->or_where('LOWER('.$field.') LIKE "%'.$q.'%"');
-			}
 
-			$this->db->order_by('date_added desc');
+			foreach ($full_text_fields as $field)
+			{
+				$this->db->or_where($field.' LIKE "%'.$q.'%"');
+				
+				if ( ! $is_count) $select[] = '(CASE WHEN `'.$field.'` LIKE "%'.$q.'%" THEN 1 ELSE 0 END)';
+			}
+			
+			if ( ! $is_count)
+			{
+				$this->db->select('('.implode(' + ', $select).') AS relevance', false);
+				$this->db->order_by('relevance desc');
+			}
 		}
 	}
 	
