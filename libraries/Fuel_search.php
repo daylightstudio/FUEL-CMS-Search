@@ -127,7 +127,7 @@ class Fuel_search extends Fuel_advanced_module {
 			$location = $module_obj->url($posted);
 
 			// now index the page
-			//$this->index($location, $module);
+			$this->index($location, $module);
 			
 			// use ajax to speed things up
 			$output = lang('data_saved').'<script type="text/javascript">
