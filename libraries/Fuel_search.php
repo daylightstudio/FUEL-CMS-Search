@@ -149,7 +149,7 @@ class Fuel_search extends Fuel_advanced_module {
 					// use ajax to speed things up
 					$output = lang('data_saved').'{script}
 						$(function(){
-							$.get("'.fuel_url('tools/search/index_site').'?pages='.$location.'")
+							$.get("'.fuel_url('tools/search/index_site').'?pages='.$location.'&format=raw")
 						});
 					{/script}';
 					$this->fuel->admin->set_notification($output, Fuel_admin::NOTIFICATION_SUCCESS);

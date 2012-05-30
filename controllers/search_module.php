@@ -18,7 +18,7 @@ class Search_module extends Module {
 	function index_site()
 	{
 		$pages = $this->input->get_post('pages');
-		
+		$format = $this->input->get_post('output');
 		if ($pages)
 		{
 			if (!is_array($pages))
@@ -32,7 +32,7 @@ class Search_module extends Module {
 			$vars['crawled'] = $this->fuel->search->index(FALSE, 'pages', TRUE);
 		}
 		
-		if (is_ajax())
+		if ($format == 'raw')
 		{
 			$output = $this->fuel->search->display_log('all', '', TRUE);
 			$this->output->set_output($output);
