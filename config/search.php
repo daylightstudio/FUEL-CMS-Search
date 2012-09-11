@@ -32,6 +32,9 @@ $config['search']['delimiters'] = array(
 	'<div id="main">', 
 );
 
+// search page title tag (e.g. "title, h1")
+$config['search']['title_tag'] = array('title', 'h1');
+
 // the URI locations of pages to exclude from the index. 
 // You can also add them to the "robots.txt" file for your site
 $config['search']['exclude'] = array();

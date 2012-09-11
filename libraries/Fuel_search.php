@@ -727,20 +727,22 @@ class Fuel_search extends Fuel_advanced_module {
 	 */	
 	function find_page_title($xpath)
 	{
-		// get the h1 value for the title
-		$title_results = $xpath->query('//h1');
-		if ($title_results->item(0))
+		$title_tags = $this->config('title_tag');
+
+		if (is_string($title_tags))
 		{
-			$title = $title_results->item(0)->nodeValue;
-			return $title;
+			$title_tags = preg_split('#,\s*#', $title_tag);
 		}
-		
-		// if no h1, then we get the page title
-		$title_results = $xpath->query('//title');
-		if ($title_results->item(0))
+
+		foreach ($title_tags as $tag)
 		{
-			$title = $title_results->item(0)->nodeValue;
-			return $title;
+			// get the h1 value for the title
+			$title_results = $xpath->query('//'.$tag);
+			if ($title_results->item(0))
+			{
+				$title = $title_results->item(0)->nodeValue;
+				return $title;
+			}
 		}
 		
 		return FALSE;
