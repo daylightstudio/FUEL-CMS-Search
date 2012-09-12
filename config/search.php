@@ -35,6 +35,9 @@ $config['search']['delimiters'] = array(
 // search page title tag (e.g. "title, h1")
 $config['search']['title_tag'] = array('title', 'h1');
 
+// search page for appropriate tag to save as excerpt tag (e.g. "p", "meta[@name="description"]/@content")
+$config['search']['excerpt_tag'] = array('p', 'meta[@name="description"]/@content');
+
 // the URI locations of pages to exclude from the index. 
 // You can also add them to the "robots.txt" file for your site
 $config['search']['exclude'] = array();

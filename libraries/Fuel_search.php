@@ -427,14 +427,18 @@ class Fuel_search extends Fuel_advanced_module {
 		// get the title
 		$title = $this->find_page_title($xpath);
 
+		// get the excerpt
+		$excerpt = $this->find_excerpt($xpath);
+
 		// create search record
 		if (!empty($content) AND !empty($title))
 		{
 			$rec = array(
 				'location' => $location,
-				'scope' => $scope,
-				'title' => $title,
-				'content' => $content,
+				'scope'    => $scope,
+				'title'    => $title,
+				'content'  => $content,
+				'excerpt'  => $excerpt
 				);
 
 			if (!$this->create($rec))
@@ -727,26 +731,65 @@ class Fuel_search extends Fuel_advanced_module {
 	 */	
 	function find_page_title($xpath)
 	{
-		$title_tags = $this->config('title_tag');
+		return $this->_find_tag($xpath, $this->config('title_tag'));
+	}
 
-		if (is_string($title_tags))
+	// --------------------------------------------------------------------
+	
+	/**
+	 * Searches for excerpt
+	 *
+	 * @access	public
+	 * @param	object	DOMXpath
+	 * @return	array
+	 */	
+	function find_excerpt($xpath)
+	{
+		return $this->_find_tag($xpath, $this->config('excerpt_tag'));
+
+	}
+
+	// --------------------------------------------------------------------
+	
+	/**
+	 * Searches for title
+	 *
+	 * @access	public
+	 * @param	object	DOMXpath
+	 * @return	array
+	 */	
+	function _find_tag($xpath, $tags)
+	{
+		if (is_string($tags))
 		{
-			$title_tags = preg_split('#,\s*#', $title_tag);
+			$tags = preg_split('#,\s*#', $tags);
 		}
-
-		foreach ($title_tags as $tag)
+			
+		foreach ($tags as $tag)
 		{
-			// get the h1 value for the title
-			$title_results = $xpath->query('//'.$tag);
-			if ($title_results->item(0))
+
+			if (preg_match('#^<.+>#', $tag, $matches))
 			{
-				$title = $title_results->item(0)->nodeValue;
-				return $title;
+				$tag = $this->get_xpath_from_node($query);
 			}
+
+			// get the h1 value for the title
+			$tag_results = $xpath->query('//'.$tag);
+			
+			if ($tag_results->length)
+			{
+				foreach($tag_results as $t)
+				{
+					$value = (string) $t->nodeValue;
+					return $value;
+				}
+			}
+			
 		}
 		
 		return FALSE;
 	}
+
 
 	// --------------------------------------------------------------------
 	
@@ -847,6 +890,7 @@ class Fuel_search extends Fuel_advanced_module {
 		$values['location'] = $this->get_location($values['location']);
 		$values['title'] = $this->format_title($values['title']);
 		$values['content'] = $this->clean($values['content']);
+		$values['excerpt'] = $this->clean($values['excerpt']);
 
 		if (empty($values['location']))
 		{
