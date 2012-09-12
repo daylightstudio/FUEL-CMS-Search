@@ -357,7 +357,7 @@ class Fuel_search extends Fuel_advanced_module {
 			if ($indexed)
 			{
 				// grab all the page links
-				preg_match_all("/<a(?:[^>]*)href=\"([^\"]*)\"(?:[^>]*)>(?:[^<]*)<\/a>/is", $html, $matches);
+				preg_match_all("/<a(?:[^>]*)href=\"([^\"]*)\"(?:[^>]*)>/is", $html, $matches);
 				if (!empty($matches[1]))
 				{
 					foreach($matches[1] as $url)
