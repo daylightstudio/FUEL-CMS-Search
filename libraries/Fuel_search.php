@@ -296,7 +296,7 @@ class Fuel_search extends Fuel_advanced_module {
 				// convert wild-cards to RegEx
 				$val = str_replace(':any', '.+', str_replace(':num', '[0-9]+', $val));
 	
-				// does the RegEx match? If so, we it's not indexable'
+				// does the RegEx match? If so, it's not indexable'
 				if (preg_match('#^'.$val.'$#', $p))
 				{
 					return FALSE;
@@ -346,7 +346,6 @@ class Fuel_search extends Fuel_advanced_module {
 		{
 			$indexed = FALSE;
 			
-			$loc = $this->get_location($location);
 			if ($index_content)
 			{
 				$indexed = $this->index_page($location, $html);
@@ -361,19 +360,14 @@ class Fuel_search extends Fuel_advanced_module {
 				preg_match_all("/<a(?:[^>]*)href=\"([^\"]*)\"(?:[^>]*)>(?:[^<]*)<\/a>/is", $html, $matches);
 				if (!empty($matches[1]))
 				{
-					$loc = $this->get_location($location);
 					foreach($matches[1] as $url)
 					{
 						// remove page anchors
 						$url_arr = explode('#', $url);
 						$url = $this->get_location($url_arr[0]);
-
 						// check if the url is local AND whether it has already been indexed
 						if (!isset($crawled[$url]))
 						{
-							// add the url in the indexed array
-							$crawled[$url] = $url;
-
 							// now recursively crawl
 							$this->crawl_pages($url);
 							
@@ -619,7 +613,7 @@ class Fuel_search extends Fuel_advanced_module {
 		
 		if ($http_code != 200)
 		{
-			$msg = lang('search_log_index_page_error', 'HTTP Code '.$http_code.' for '.$url);
+			$msg = lang('search_log_index_page_error', 'HTTP Code '.$http_code.' for <a href="'.site_url($url).'" target="_blank">'.$url.'</a>');
 			$this->log_message($msg, self::LOG_ERROR);
 			$this->_add_error($msg);
 			return FALSE;
@@ -874,14 +868,16 @@ class Fuel_search extends Fuel_advanced_module {
 	 * @param	string
 	 * @return	boolean
 	 */	
-	function create($location, $content = NULL, $scope = 'page')
+	function create($location, $content = NULL, $title = NULL, $excerpt = NULL, $scope = 'page')
 	{
+		$values = array();
 		if (!is_array($location))
 		{
 			$values['location'] = $location;
 			$values['scope'] = $scope;
 			$values['title'] = $title;
 			$values['content'] = $content;
+			$values['excerpt'] = $excerpt;
 		}
 		else
 		{
@@ -891,23 +887,21 @@ class Fuel_search extends Fuel_advanced_module {
 		$values['title'] = $this->format_title($values['title']);
 		$values['content'] = $this->clean($values['content']);
 		$values['excerpt'] = $this->clean($values['excerpt']);
-
 		if (empty($values['location']))
 		{
 			$values['location'] = 'home';
 		}
 
-		// to some checks here first to make sure it is valid content
-		if (!$this->is_local_url($values['location']) OR !isset($values['content']) OR !isset($values['title']))
+		// do some checks here first to make sure it is valid content
+		if (!$this->is_local_url($values['location']) OR !isset($values['content']) OR !isset($values['title']) OR !isset($values['excerpt']))
 		{
 			return FALSE;
 		}
-		
 		$saved = $this->CI->search_model->save($values);
 
 		if ($saved)
 		{
-			$msg = lang('search_log_index_created', $values['location']);
+			$msg = lang('search_log_index_created', '<a href="'.site_url($values['location']).'" target="_blank">'.$values['location'].'</a>');
 			$this->log_message($msg, self::LOG_INDEXED);
 			return TRUE;
 		}
@@ -937,7 +931,7 @@ class Fuel_search extends Fuel_advanced_module {
 		
 		if ($deleted)
 		{
-			$msg = lang('search_log_index_removed', $location);
+			$msg = lang('search_log_index_removed', '<a href="'.site_url($location).'" target="_blank">'.$location.'</a>');
 			$this->log_message($msg, self::LOG_REMOVED);
 			return TRUE;
 		}
@@ -1029,10 +1023,11 @@ class Fuel_search extends Fuel_advanced_module {
 	function get_location($url)
 	{
 		$url = str_replace(site_url(), '', $url);
-		if ($url .= '/')
-		{
-			$url = trim($url, '/');
-		}
+
+		// remove web path as well
+		$web_path = trim(WEB_PATH, '/');
+		$url = trim($url, '/');
+		$url = preg_replace('#^'.$web_path.'/#', '', $url);
 		return $url;
 	}
 	
