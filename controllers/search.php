@@ -57,6 +57,21 @@ class Search extends CI_Controller {
 		
 		$this->fuel->pages->render($view, $vars, $params);
 	}
+
+	function sitemap()
+	{
+		$pages = $this->fuel->search->model()->find_all_array_assoc('location');
+
+		// change homepage to just '/'
+		$pages[''] = '';
+		unset($pages['home']);
+
+		$pages = array_keys($pages);
+		sort($pages);
+		$vars['pages'] = $pages;
+		
+		$this->load->module_view(SEARCH_FOLDER, 'sitemap_xml', $vars);
+	}
 	
 }
 /* End of file backup.php */
