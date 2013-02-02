@@ -5,8 +5,9 @@ CREATE TABLE `fuel_search` (
   `title` varchar(255) NOT NULL DEFAULT '',
   `content` longtext NOT NULL,
   `excerpt` text NOT NULL,
+  `language` varchar(30) NOT NULL DEFAULT 'english',
   `date_added` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `location` (`location`),
-  FULLTEXT KEY `title` (`title`,`content`)
-) ENGINE=MyISAM AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
+  FULLTEXT KEY `title` (`location`,`title`,`content`)
+) ENGINE=MyISAM AUTO_INCREMENT=846 DEFAULT CHARSET=utf8;

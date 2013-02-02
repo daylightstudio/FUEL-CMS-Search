@@ -17,6 +17,9 @@ $config['tables']['search'] = 'fuel_search';
 
 $config['search'] = array();
 
+// the base url in which to look. By default it will assume the same value as site_url()
+$config['search']['base_url'] = '';
+
 // whether to enable search indexing
 $config['search']['indexing_enabled'] = TRUE;
 
@@ -37,6 +40,9 @@ $config['search']['title_tag'] = array('title', 'h1');
 
 // search page for appropriate tag to save as excerpt tag (e.g. "p", "meta[@name="description"]/@content")
 $config['search']['excerpt_tag'] = array('p', 'meta[@name="description"]/@content');
+
+// search page for appropriate language value using the meta values or html lang attrubute (e.g. "p", "html[@lang]")
+$config['search']['language_tag'] = array('html[@lang]/@lang');
 
 // the URI locations of pages to exclude from the index. 
 // You can also add them to the "robots.txt" file for your site

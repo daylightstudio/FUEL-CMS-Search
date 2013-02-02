@@ -41,7 +41,7 @@ class Search_model extends Base_module_model {
 	protected function _find_keyword_where($q, $is_count = FALSE)
 	{
 		$CI =& get_instance();
-		$full_text_fields = array('title', 'content');
+		$full_text_fields = array('location', 'title', 'content');
 		$full_text_indexed = implode($full_text_fields, ', ');
 	
 		$q = trim(strtolower($q)); // trim the right and left from whitespace
@@ -82,6 +82,13 @@ class Search_model extends Base_module_model {
 				$this->db->select('('.implode(' + ', $select).') AS relevance', false);
 				$this->db->order_by('relevance desc');
 			}
+		}
+
+		// manage the language
+		$language = $CI->fuel->language->detect();
+		if ($language != $this->fuel->language->default_option())
+		{
+			$this->db->where('('.$this->_tables['search'].'.language="'.$language.'" OR '.$this->_tables['search'].'.language="")');
 		}
 	}
 	
