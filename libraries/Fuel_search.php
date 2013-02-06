@@ -349,8 +349,8 @@ class Fuel_search extends Fuel_advanced_module {
 			
 			if ($index_content)
 			{
-				$indexed = $this->index_page($location, $html);
 				$url = $this->get_location($location);
+				$indexed = $this->index_page($url, $html);
 				$crawled[$url] = $url;
 			}
 		
@@ -985,6 +985,8 @@ class Fuel_search extends Fuel_advanced_module {
 	 */	
 	function clean($content)
 	{
+		global $UNI;
+		$content = $UNI->clean_string($content); // convert to UTF-8
 		$content = safe_htmlentities($content);
 		$content = strip_tags($content);
 		$content = trim(preg_replace('#(\s)\s+|(\n)\n+|(\r)\r+#m', '$1', $content));
@@ -1049,6 +1051,9 @@ class Fuel_search extends Fuel_advanced_module {
 		$web_path = trim(WEB_PATH, '/');
 		$url = trim($url, '/');
 		$url = preg_replace('#^'.$web_path.'/#', '', $url);
+
+		// to help with multi language sites
+		$url = str_replace('?lang='.$this->fuel->language->default_option(), '', $url);
 		return $url;
 	}
 	
@@ -1146,9 +1151,12 @@ class Fuel_search extends Fuel_advanced_module {
 			$url = trim($url, '/');
 			$this->base_url = rtrim($this->base_url, '/');
 			$url = $this->base_url.'/'.$url;
-			return $url;
 		}
-		return site_url($url);
+		else
+		{
+			$url = site_url($url);
+		}
+		return $url;
 	}
 }
 
