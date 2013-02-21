@@ -65,6 +65,12 @@ $config['search']['view'] = 'search';
 // minimum length of the search term
 $config['search']['min_length_search'] = 3;
 
+// maximum search depth. 0 means there is no limit
+$config['search']['depth'] = 0;
+
+// use a temp table to store crawled information before switching to live table
+$config['search']['user_tmp_table'] = 0;
+
 // pagination
 $config['search']['pagination'] = array(
 		'per_page' => 10,

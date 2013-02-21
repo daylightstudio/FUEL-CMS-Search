@@ -34,8 +34,10 @@ class Fuel_search extends Fuel_advanced_module {
 	public $title_limit = 100; // max character limit of the title of content
 	public $q = ''; // search term
 	public $auto_ignore = array('sitemap.xml', 'robots.txt', 'search'); // pages to ignore when determining if indexable
+	public $depth = 0; // the depth in which to crawl
 	public $base_url = 'http://www.igrafx.com/'; // the base URL value of where to pull page information from
-
+	public $user_tmp_table = TRUE; // use a temp table while indexing results
+	public static $crawled = array(); // used to capture crawled urls
 	protected $_logs = array(); // log of items indexed
 	
 	const LOG_ERROR = 'error';
@@ -211,12 +213,27 @@ class Fuel_search extends Fuel_advanced_module {
 		// check if indexing is enabled first
 		if ($this->config('indexing_enabled'))
 		{
+
+			$orig_table_name = $this->CI->search_model->table_name();
+
 			// clear out the entire index
 			if ($clear_all)
 			{
-				$this->clear_all();
+				if (!$this->user_tmp_table)
+				{
+					$this->clear_all();
+				}
+
+				// set to temp table if TRUE and if $clear_all is set to TRUE so as to make the indexing not appear broken while indexing
+				if ($this->user_tmp_table)
+				{
+					$this->create_temp_table();
+					$this->CI->search_model->set_table($this->temp_table_name());
+				}
 			}
 			
+			$indexed = FALSE;
+
 			if (empty($pages))
 			{
 				
@@ -230,8 +247,10 @@ class Fuel_search extends Fuel_advanced_module {
 				}
 				else if ($index_method == 'crawl')
 				{
+
 					// if we crawl the page, then we automatically will save it's contents to save on CURL requests'
-					return $this->crawl_pages();
+					$pages = $this->crawl_pages();
+					$indexed = TRUE;
 				}
 				
 				// default will check if there is a sitemap, and if not, will crawl
@@ -241,24 +260,37 @@ class Fuel_search extends Fuel_advanced_module {
 
 					if (empty($pages))
 					{
-						return $this->crawl_pages();
+						$pages = $this->crawl_pages();
+						$indexed = TRUE;
 					}
 				}
 			}
-			
-			$pages = (array) $pages;
-			
-			// render the pages then look for delimiters within to get the content
-			foreach($pages as $location)
+
+			if (!$indexed)
 			{
-				// find indexable content in the html and create the index in the database
-				if (!$this->index_page($location))
+				$pages = (array) $pages;
+				
+				// render the pages then look for delimiters within to get the content
+				foreach($pages as $location)
 				{
-					// if not indexed then remove it if it exists
-					$this->remove($location);
+					// find indexable content in the html and create the index in the database
+					if (!$this->index_page($location))
+					{
+						// if not indexed then remove it if it exists
+						$this->remove($location);
+					}
 				}
 			}
+
+			// set to temp table if TRUE and if $clear_all is set to TRUE so as to make the indexing not appear broken while indexing
+			if ($this->user_tmp_table AND $clear_all)
+			{
+				$this->CI->search_model->set_table($orig_table_name);
+				$this->switch_from_temp_table();
+			}
+
 			return $pages;
+			
 		}
 		
 		// if indexing isn't enabled, we'll add it to the errors list
@@ -322,12 +354,12 @@ class Fuel_search extends Fuel_advanced_module {
 	 * @access	public
 	 * @param	string
 	 * @param	boolean
+	 * @param	boolean
 	 * @return	array
 	 */	
-	function crawl_pages($location = 'home', $index_content = TRUE)
+	function crawl_pages($location = 'home', $index_content = TRUE, $depth = NULL)
 	{
-		static $crawled = array();
-		
+
 		// start at the homepage if no root page is specified
 		if (empty($location) OR $location == 'home')
 		{
@@ -350,8 +382,11 @@ class Fuel_search extends Fuel_advanced_module {
 			if ($index_content)
 			{
 				$url = $this->get_location($location);
-				$indexed = $this->index_page($url, $html);
-				$crawled[$url] = $url;
+				if (!isset(self::$crawled[$url]))
+				{
+					$indexed = $this->index_page($url, $html);
+					self::$crawled[$url] = $url;
+				}
 			}
 		
 			// the page must be properly indexed above to continue on
@@ -359,28 +394,38 @@ class Fuel_search extends Fuel_advanced_module {
 			{
 				// grab all the page links
 				preg_match_all("/<a(?:[^>]*)href=\"([^\"]*)\"(?:[^>]*)>/is", $html, $matches);
+				unset($html);
 				if (!empty($matches[1]))
 				{
 					foreach($matches[1] as $url)
 					{
 						// remove page anchors
 						$url_arr = explode('#', $url);
-						$url = $this->get_location($url_arr[0]);
+						$url = $this->get_location($url_arr[0], $location);
 						// check if the url is local AND whether it has already been indexed
-						if (!isset($crawled[$url]))
+						if (!isset(self::$crawled[$url]))
 						{
 							// now recursively crawl
-							$this->crawl_pages($url);
+							if ($this->depth === 0 OR (is_int($depth) AND $depth < $this->depth))
+							{
+								if (is_int($depth))
+								{
+									$depth++;
+								}
+								$this->crawl_pages($url, $index_content = TRUE, $depth);	
+							}
 							
 							// add the url in the indexed array
-							$crawled[$url] = $url;
+							self::$crawled[$url] = $url;
 
 						}
 					}
 				}
+
+				unset($matches);
 			}
 		}
-		return array_values($crawled);
+		return array_values(self::$crawled);
 	}
 	
 	// --------------------------------------------------------------------
@@ -616,7 +661,7 @@ class Fuel_search extends Fuel_advanced_module {
 		// if the page doesn't return a 200 status, we don't scrape
 		$http_code = $this->CI->curl->info('http_code');
 		
-		if ($http_code != 200)
+		if ($http_code >= 400)
 		{
 			$msg = lang('search_log_index_page_error', 'HTTP Code '.$http_code.' for <a href="'.$this->site_url($url).'" target="_blank">'.$url.'</a>');
 			$this->log_message($msg, self::LOG_ERROR);
@@ -648,7 +693,10 @@ class Fuel_search extends Fuel_advanced_module {
 		
 		$dom = new DOMDocument();
 		$dom->preserveWhiteSpace = FALSE;
-		
+		$dom->substituteEntities = FALSE;
+
+		$content = mb_convert_encoding($content, 'HTML-ENTITIES', "UTF-8");
+
 		if ($type == 'html')
 		{
 			$loaded = @$dom->loadHTML($content);
@@ -918,13 +966,18 @@ class Fuel_search extends Fuel_advanced_module {
 		{
 			return FALSE;
 		}
-		$saved = $this->CI->search_model->save($values);
 
+		$saved = $this->CI->search_model->save($values);
 		if ($saved)
 		{
 			$msg = lang('search_log_index_created', '<a href="'.$this->site_url($values['location']).'" target="_blank">'.$values['location'].'</a>');
 			$this->log_message($msg, self::LOG_INDEXED);
 			return TRUE;
+		}
+		else if ($this->CI->search_model->has_error())
+		{
+			$msg = $this->CI->search_model->get_validation()->get_last_error().' - '.'<a href="'.$this->site_url($values['location']).'" target="_blank">'.$values['location'].'</a>';
+			$this->log_message($msg, self::LOG_ERROR);
 		}
 		return FALSE;
 	}
@@ -1015,12 +1068,12 @@ class Fuel_search extends Fuel_advanced_module {
 	 * Determines whether the url is local to the site or not
 	 * 
 	 * @access	public
-	 * @param	string	title
+	 * @param	string	url
 	 * @return	boolean
 	 */	
 	function is_local_url($url)
 	{
-		if (substr($url, 0, 7) == 'mailto:' OR substr($url, 0, 1) == '#' OR substr($url, 0, 11) == 'javascript:')
+		if (!$this->is_normal_url($url))
 		{
 			return FALSE;
 		}
@@ -1033,6 +1086,20 @@ class Fuel_search extends Fuel_advanced_module {
 			return TRUE;
 		}
 	}
+
+	// --------------------------------------------------------------------
+	
+	/**
+	 * Determines whether the url contains a normal link
+	 * 
+	 * @access	public
+	 * @param	string	url
+	 * @return	boolean
+	 */	
+	function is_normal_url($url)
+	{
+		return !(substr($url, 0, 7) == 'mailto:' OR substr($url, 0, 1) == '#' OR substr($url, 0, 11) == 'javascript:');
+	}
 	
 	// --------------------------------------------------------------------
 	
@@ -1041,10 +1108,21 @@ class Fuel_search extends Fuel_advanced_module {
 	 * 
 	 * @access	public
 	 * @param	string	url
+	 * @param	string	relative to the page (optional)
 	 * @return	string
 	 */	
-	function get_location($url)
+	
+	function get_location($url, $relative = NULL)
 	{
+		// if it's determined to be a relative path... we tack it on to the relative
+		if (!is_http_path($url) AND $this->is_normal_url($url) AND substr($url, 0, 1) != '/' AND !empty($relative))
+		{
+			$relative_parts = explode('/', $relative);
+			array_pop($relative_parts);
+			$relative = implode('/', $relative_parts);
+			$url = $relative.'/'.$url;
+		}
+
 		$url = str_replace($this->site_url(), '', $url);
 
 		// remove web path as well
@@ -1071,7 +1149,12 @@ class Fuel_search extends Fuel_advanced_module {
 	 */	
 	function log_message($msg, $type = self::LOG_ERROR)
 	{
-		$this->_logs[$type][] = $msg;
+		if (Fuel_search::is_cli())
+		{
+			$msg = strip_tags($msg);
+			echo $msg."\n";
+		}
+		$this->_logs[$type][] = $msg;	
 	}
 	
 	// --------------------------------------------------------------------
@@ -1144,6 +1227,15 @@ class Fuel_search extends Fuel_advanced_module {
 		return $str;
 	}
 
+	// --------------------------------------------------------------------
+	
+	/**
+	 * Generates the proper URL taking into account in base_url value specified
+	 * 
+	 * @access	public
+	 * @param	string
+	 * @return	string
+	 */	
 	function site_url($url = '')
 	{
 		if (!empty($this->base_url))
@@ -1157,6 +1249,86 @@ class Fuel_search extends Fuel_advanced_module {
 			$url = site_url($url);
 		}
 		return $url;
+	}
+
+	// --------------------------------------------------------------------
+	
+	/**
+	 * Creates a temp table to store results
+	 * 
+	 * @access	public
+	 * @return	void
+	 */	
+	function create_temp_table()
+	{
+		$this->CI->load->dbforge();
+
+		$tmp_table_name = $this->temp_table_name();
+
+		// drop temp table
+		$this->CI->dbforge->drop_table($tmp_table_name);
+
+		$install_path = SEARCH_PATH.'install/fuel_search_install.sql';
+		$install_sql = file_get_contents($install_path);
+
+		$search_table = $this->CI->search_model->table_name();
+		$install_sql = str_replace('`'.$search_table.'`', '`'.$tmp_table_name.'`', $install_sql);
+		$this->CI->db->load_sql($install_sql);
+	}
+
+	// --------------------------------------------------------------------
+	
+	/**
+	 * Returns temp table name
+	 * 
+	 * @access	public
+	 * @return	string
+	 */	
+	function temp_table_name()
+	{
+		return $this->CI->search_model->table_name().'_tmp';
+	}
+
+	// --------------------------------------------------------------------
+	
+	/**
+	 * Drops the temp table
+	 * 
+	 * @access	public
+	 * @return	void
+	 */	
+	function switch_from_temp_table()
+	{
+		$this->CI->load->dbforge();
+
+		// rename current table to backup
+		$search_table = $this->CI->search_model->table_name();
+		$new_table_bak = $this->CI->search_model->table_name().'_bak';
+		$tmp_table_name = $this->temp_table_name();
+		$this->CI->dbforge->rename_table($search_table, $new_table_bak);
+
+		// rename temp table to new table
+		$this->CI->dbforge->rename_table($tmp_table_name, $search_table);
+
+		// drop backup table
+		$this->CI->dbforge->drop_table($new_table_bak);
+
+		// drop temp table
+		$this->CI->dbforge->drop_table($tmp_table_name);
+	}
+
+	// --------------------------------------------------------------------
+	
+	/**
+	 * Convenience static method for determining whether the script is being run via CLI
+	 * 
+	 * @access	public
+	 * @return	boolean
+	 */	
+	static public function is_cli()
+	{
+		$is_cli = (php_sapi_name() == 'cli' or defined('STDIN')) ? TRUE : FALSE;
+		return $is_cli;
 	}
 }
 

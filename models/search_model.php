@@ -7,11 +7,19 @@ class Search_model extends Base_module_model {
 	public $required = array('location', 'scope', 'title', 'content');
 	public $record_class = 'Search_item';
 
+	public $tmp_table = 'fuel_search_tmp';
+	protected $_orig_table_name = 'search';
+
 	function __construct()
 	{
-		parent::__construct('search', SEARCH_FOLDER);
-		
+		parent::__construct($this->_orig_table_name, SEARCH_FOLDER);
 	}
+
+	function set_table($table)
+	{
+		$this->table_name = $table;
+	}
+
 	function find_by_keyword($q, $limit = NULL, $offset = NULL, $excerpt_limit = 200)
 	{
 		$this->_find_keyword_where($q);
@@ -85,10 +93,14 @@ class Search_model extends Base_module_model {
 		}
 
 		// manage the language
-		$language = $CI->fuel->language->detect();
-		if ($language != $this->fuel->language->default_option())
+		if ($this->fuel->language->has_multiple())
 		{
-			$this->db->where('('.$this->_tables['search'].'.language="'.$language.'" OR '.$this->_tables['search'].'.language="")');
+			$language = $CI->fuel->language->detect();
+
+			if (!empty($language))
+			{
+				$this->db->where('('.$this->_tables['search'].'.language="'.$language.'" OR '.$this->_tables['search'].'.language="")');
+			}
 		}
 	}
 	
