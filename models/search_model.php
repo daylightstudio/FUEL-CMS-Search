@@ -28,6 +28,7 @@ class Search_model extends Base_module_model {
 		$this->db->select($this->_tables['search'].'.title');
 		$this->db->select($this->_tables['search'].'.date_added');
 		$this->db->select($this->_tables['search'].'.content');
+		$this->db->select($this->_tables['search'].'.language');
 		$this->db->select('IF(excerpt = "", SUBSTRING('.$this->_tables['search'].'.content, 1, '.$excerpt_limit.'), excerpt) AS excerpt', FALSE);
 		$this->db->limit($limit);
 		
@@ -36,6 +37,8 @@ class Search_model extends Base_module_model {
 			$this->db->offset($offset);
 		}
 		$results = $this->find_all();
+		//$this->debug_query();
+
 		return $results;
 	}
 	
@@ -56,7 +59,6 @@ class Search_model extends Base_module_model {
 		$q = preg_replace("#([[:space:]]{2,})#",' ',$q); // remove multiple spaces
 		$q_len = strlen($q);
 		
-		
 		if ($q_len >= 4 AND (strtolower($CI->fuel->search->config('query_type')) == 'match' OR strtolower($CI->fuel->search->config('query_type')) == 'match boolean'))
 		{
 			$q = $this->db->escape($q);
@@ -70,21 +72,23 @@ class Search_model extends Base_module_model {
 			}
 			if ( ! $is_count)
 			{
-				$this->db->select('match ('.$full_text_indexed.') against ('.$q.')  AS relevance ', FALSE);
+				$this->db->select('MATCH ('.$full_text_indexed.') AGAINST ('.$q.')  AS relevance ', FALSE);
 				$this->db->order_by('relevance desc');
 			}
 		}
 		else
 		{
 			$q = $this->db->escape_str($q);
-
+			$like_or = array();
 			foreach ($full_text_fields as $field)
 			{
-				$this->db->or_where($field.' LIKE "%'.$q.'%"');
-				
+				$like_or[] = $field.' LIKE "%'.$q.'%"';
 				if ( ! $is_count) $select[] = '(CASE WHEN `'.$field.'` LIKE "%'.$q.'%" THEN 1 ELSE 0 END)';
 			}
 			
+			$like_or_str = implode(' OR ', $like_or);
+			unset($like_or);
+			$this->db->where('('.$like_or_str.')');
 			if ( ! $is_count)
 			{
 				$this->db->select('('.implode(' + ', $select).') AS relevance', false);
