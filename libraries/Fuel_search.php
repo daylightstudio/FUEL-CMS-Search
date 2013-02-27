@@ -745,22 +745,22 @@ class Fuel_search extends Fuel_advanced_module {
 			{
 				$query = $this->get_xpath_from_node($query);
 			}
-			
+
 			$results = $xpath->query($query);
-			
 			if (!empty($results))
 			{
 				$content_arr = array();
 				foreach($results as $r)
 				{
 					$val = (string)$r->nodeValue;
+
 					// using DOM has added benefit of stripping tags out!
 					if (!empty($val))
 					{
 						$content_arr[] = $val;
 					}
 				}
-				$content = implode('|', $content_arr);
+				$content .= implode('|', $content_arr);
 			}
 		}
 		
@@ -960,7 +960,6 @@ class Fuel_search extends Fuel_advanced_module {
 		{
 			$values['location'] = 'home';
 		}
-
 		// do some checks here first to make sure it is valid content
 		if (!$this->is_local_url($values['location']) OR !isset($values['content']) OR !isset($values['title']) OR !isset($values['excerpt']))
 		{

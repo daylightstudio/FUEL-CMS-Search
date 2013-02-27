@@ -33,13 +33,14 @@ $config['search']['query_type'] = 'match boolean';
 // search page content delimiters. used for scraping page content. Can be an HTML node or xpath syntax (e.g. //div[@id="main"])
 $config['search']['delimiters'] = array(
 	'<div id="main">', 
+	'//meta[@name="keywords"]/@content',
 );
 
 // search page title tag (e.g. "title, h1")
 $config['search']['title_tag'] = array('title', 'h1');
 
 // search page for appropriate tag to save as excerpt tag (e.g. "p", "meta[@name="description"]/@content")
-$config['search']['excerpt_tag'] = array('p', 'meta[@name="description"]/@content');
+$config['search']['excerpt_tag'] = array('p', '//meta[@name="description"]/@content');
 
 // search page for appropriate language value using the meta values or html lang attrubute (e.g. "p", "html[@lang]")
 $config['search']['language_tag'] = array('html[@lang]/@lang');
