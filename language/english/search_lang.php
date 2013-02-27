@@ -7,6 +7,7 @@ $lang['search_error_curl_content'] = 'Error loading content from %1s';
 $lang['search_error_saving'] = 'There was an error saving your content to the search index';
 $lang['search_error_deleting'] = 'There was an error deleting your content from the search index';
 $lang['search_instructions'] = 'Here you can edit the contents of the search index.';
+$lang['search_reindex_instructions'] = 'Select one or more pages below, or simply click Sync to sync all pages.';
 
 // for logging
 $lang['search_log_index_created'] = 'Indexed: %1s';
