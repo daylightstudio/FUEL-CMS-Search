@@ -35,7 +35,7 @@ class Fuel_search extends Fuel_advanced_module {
 	public $q = ''; // search term
 	public $auto_ignore = array('sitemap.xml', 'robots.txt', 'search'); // pages to ignore when determining if indexable
 	public $depth = 0; // the depth in which to crawl
-	public $base_url = 'http://www.igrafx.com/'; // the base URL value of where to pull page information from
+	public $base_url = ''; // the base URL value of where to pull page information from
 	public $user_tmp_table = TRUE; // use a temp table while indexing results
 	public static $crawled = array(); // used to capture crawled urls
 	protected $_logs = array(); // log of items indexed
@@ -58,10 +58,8 @@ class Fuel_search extends Fuel_advanced_module {
 			$params['name'] = 'search';
 		}
 		$this->initialize($params);
-		
 		$this->load_model('search');
 		$this->CI->load->library('curl');
-
 	}
 	
 	// --------------------------------------------------------------------
@@ -1097,7 +1095,7 @@ class Fuel_search extends Fuel_advanced_module {
 	 */	
 	function is_normal_url($url)
 	{
-		return !(substr($url, 0, 7) == 'mailto:' OR substr($url, 0, 1) == '#' OR substr($url, 0, 11) == 'javascript:');
+		return !(strncasecmp($url, 'mailto:', 7) === 0 OR substr($url, 0, 1) == '#' OR strncasecmp($url, 'javascript:', 11) === 0);
 	}
 	
 	// --------------------------------------------------------------------
@@ -1237,11 +1235,13 @@ class Fuel_search extends Fuel_advanced_module {
 	 */	
 	function site_url($url = '')
 	{
-		if (!empty($this->base_url))
+		$base_url = $this->config('base_url');
+		
+		if (!empty($base_url))
 		{
 			$url = trim($url, '/');
-			$this->base_url = rtrim($this->base_url, '/');
-			$url = $this->base_url.'/'.$url;
+			$base_url = rtrim($base_url, '/');
+			$url = $base_url.'/'.$url;
 		}
 		else
 		{

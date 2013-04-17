@@ -4,18 +4,21 @@ require_once(FUEL_PATH.'/controllers/module.php');
 class Search_module extends Module {
 	
 	public $module = 'search'; // set here so the route can be tools/search
-	protected $_is_cli = FALSE;
 	
 	function __construct()
 	{
+		// don't validate initially because we need to handle it a little different since we can use web hooks
+		parent::__construct(FALSE);
+
+		$remote_ips = $this->fuel->config('webhook_romote_ip');
+		$is_web_hook = ($this->fuel->auth->check_valid_ip($remote_ips));
+
 		// check if it is CLI or a web hook otherwise we need to validate
-		$validate = (php_sapi_name() == 'cli' OR defined('STDIN')) ? FALSE : TRUE;
-		parent::__construct($validate);
+		$validate = (php_sapi_name() == 'cli' OR defined('STDIN') OR $is_web_hook) ? FALSE : TRUE;
 
 		// validate user has permission
 		if ($validate)
 		{
-			$this->fuel->admin->check_login();
 			$this->_validate_user('search');
 		}
 	}
@@ -35,7 +38,7 @@ class Search_module extends Module {
 
 		$this->form_builder->set_fields($fields);
 		$this->form_builder->set_field_values($_POST);
-		$this->form_builder->submit_value = 'Sync';
+		$this->form_builder->submit_value = 'Index';
 		$vars['form'] = $this->form_builder->render();
 		$vars['page_title'] = $this->fuel->admin->page_title(array(lang('module_sync')), FALSE);
 		$vars['form_action'] = fuel_url('tools/search/index_site');
@@ -54,7 +57,8 @@ class Search_module extends Module {
 		$pages = $this->input->get_post('pages');
 		$format = $this->input->get_post('output');
 		$clear = $this->input->get_post('clear');
-		if (!empty($pages))
+
+		if (!empty($pages) AND $pages != 'null')
 		{
 			if (!is_array($pages))
 			{

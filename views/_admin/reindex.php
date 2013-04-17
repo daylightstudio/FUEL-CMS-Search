@@ -10,7 +10,7 @@
 	<script type="text/javascript">
 	//<![CDATA[
 		$(function(){
-			$('#Sync').on('click', function(){
+			$('#Index').on('click', function(){
 				$('.loader').show();
 				var params = {pages: $('#pages').val() };
 				$.post('<?=fuel_url('tools/search/index_site')?>', params, function(html){
