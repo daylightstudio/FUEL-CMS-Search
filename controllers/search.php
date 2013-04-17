@@ -12,12 +12,12 @@ class Search extends CI_Controller {
 		$this->load->helper('text');
 		$this->load->library('pagination');
 
-		$q = $this->input->get('q');
+		$q = $this->input->get('q', TRUE);
 		
 		$pagination = $this->fuel->search->config('pagination');
 
 		$per_page = $pagination['per_page'];
-		$offset = $this->input->get('per_page');
+		$offset = $this->input->get('per_page', TRUE);
 
 		if (strlen($q) < $this->fuel->search->config('min_length_search'))
 		{
