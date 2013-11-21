@@ -40,7 +40,7 @@ class Search_module extends Module {
 		$this->form_builder->set_field_values($_POST);
 		$this->form_builder->submit_value = 'Index';
 		$vars['form'] = $this->form_builder->render();
-		$vars['page_title'] = $this->fuel->admin->page_title(array(lang('module_sync')), FALSE);
+		$vars['page_title'] = $this->fuel->admin->page_title(array(lang('module_search')), FALSE);
 		$vars['form_action'] = fuel_url('tools/search/index_site');
 	
 

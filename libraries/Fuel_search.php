@@ -328,7 +328,7 @@ class Fuel_search extends Fuel_advanced_module {
 				$val = str_replace(':any', '.+', str_replace(':num', '[0-9]+', $val));
 	
 				// does the RegEx match? If so, it's not indexable'
-				if (preg_match('#^'.$val.'$#', $p))
+				if (preg_match('#^'.$val.'$#', $location))
 				{
 					return FALSE;
 				}
@@ -355,7 +355,7 @@ class Fuel_search extends Fuel_advanced_module {
 	 * @param	boolean
 	 * @return	array
 	 */	
-	function crawl_pages($location = 'home', $index_content = TRUE, $depth = NULL)
+	function crawl_pages($location = 'home', $index_content = TRUE, $depth = 0, $parent = NULL)
 	{
 
 		// start at the homepage if no root page is specified
@@ -369,7 +369,7 @@ class Fuel_search extends Fuel_advanced_module {
 		// grab the HTML of the page to get all the links
 		if ($this->is_local_url($location) AND $this->is_indexable($location))
 		{
-			$html = $this->scrape_page($location);
+			$html = $this->scrape_page($location, FALSE, $parent);
 		}
 		
 		// index the content at the same time to save on CURL bandwidth
@@ -382,40 +382,43 @@ class Fuel_search extends Fuel_advanced_module {
 				$url = $this->get_location($location);
 				if (!isset(self::$crawled[$url]))
 				{
-					$indexed = $this->index_page($url, $html);
+					$indexed = $this->index_page($url, $html, $parent);
 					self::$crawled[$url] = $url;
 				}
 			}
 		
-			// the page must be properly indexed above to continue on
-			if ($indexed)
+			// the page must be properly indexed above to continue on and not contain a no follow meta tag
+			if ($indexed AND !preg_match('#<head>.*<meta[^>]+name=([\'"])robots\\1[^>]+content=([\'"]).*nofollow.*\\2#Uims', $html))
 			{
 				// grab all the page links
-				preg_match_all("/<a(?:[^>]*)href=\"([^\"]*)\"(?:[^>]*)>/is", $html, $matches);
-				unset($html);
-				if (!empty($matches[1]))
-				{
-					foreach($matches[1] as $url)
-					{
-						// remove page anchors
-						$url_arr = explode('#', $url);
-						$url = $this->get_location($url_arr[0], $location);
-						// check if the url is local AND whether it has already been indexed
-						if (!isset(self::$crawled[$url]))
-						{
-							// now recursively crawl
-							if ($this->depth === 0 OR (is_int($depth) AND $depth < $this->depth))
-							{
-								if (is_int($depth))
-								{
-									$depth++;
-								}
-								$this->crawl_pages($url, $index_content = TRUE, $depth);	
-							}
-							
-							// add the url in the indexed array
-							self::$crawled[$url] = $url;
+				preg_match_all("/<a(?:[^>]*)href=([\'\"])([^\\1]*)(\\1)(?:[^>]*)>/Uis", $html, $matches);
 
+				unset($html);
+				if (!empty($matches[2]))
+				{
+					$depth++;
+					foreach($matches[2] as $key => $url)
+					{
+						if (!preg_match('/nofollow=([\'\"])\w+/Uis', $matches[0][$key]))
+						{
+							// remove page anchors
+							$url_arr = explode('#', $url);
+							$url = $this->get_location($url_arr[0], $location);
+
+							// check if the url is local AND whether it has already been indexed
+							if (!isset(self::$crawled[$url]))
+							{
+								// now recursively crawl
+								$config_depth = (int) $this->config('depth');
+								if ($config_depth === 0 OR (is_int($depth) AND $depth < $config_depth))
+								{
+									$this->crawl_pages($url, $index_content = TRUE, $depth, $location, $parent);	
+								}
+								
+								// add the url in the indexed array
+								self::$crawled[$url] = $url;
+
+							}
 						}
 					}
 				}
@@ -436,7 +439,7 @@ class Fuel_search extends Fuel_advanced_module {
 	 * @param	string
 	 * @return	array
 	 */	
-	function index_page($location, $html = NULL)
+	function index_page($location, $html = NULL, $parent = NULL)
 	{
 		// check if the page is indexable before continuing
 		if (!$this->is_indexable($location))
@@ -447,12 +450,20 @@ class Fuel_search extends Fuel_advanced_module {
 		// get the page HTML need to use CURL instead of render_page because one show_404 error will halt the indexing
 		if (empty($html))
 		{
-			$html = $this->scrape_page($location);
+			$html = $this->scrape_page($location, FALSE, $parent);
+
 			if (!$html)
 			{
 				return FALSE;
 			}
 		}
+
+		// check that there is not a noindex value in the head (will not check if "name" comes after "content"...)
+		if ( preg_match('#<head>.*<meta[^>]+name=([\'"])robots\\1[^>]+content=([\'"]).*noindex.*\\2#Uims', $html))
+		{
+			return FALSE;
+		}
+
 		// get the proper scope for the page
 		$scope = $this->get_location_scope($location);
 		
@@ -615,7 +626,7 @@ class Fuel_search extends Fuel_advanced_module {
 	 * @param	boolean
 	 * @return	string
 	 */	
-	function scrape_page($url, $just_header = FALSE)
+	function scrape_page($url, $just_header = FALSE, $parent = NULL)
 	{
 		if (!is_http_path($url))
 		{
@@ -661,7 +672,12 @@ class Fuel_search extends Fuel_advanced_module {
 		
 		if ($http_code >= 400)
 		{
-			$msg = lang('search_log_index_page_error', 'HTTP Code '.$http_code.' for <a href="'.$this->site_url($url).'" target="_blank">'.$url.'</a>');
+			$m = 'HTTP Code '.$http_code.' for <a href="'.$this->site_url($url).'" target="_blank">'.$url.'</a>';
+			if (!empty($parent))
+			{
+				$m .= ' found in <a href="'.$this->site_url($parent).'" target="_blank">'.$parent.'</a>';
+			}
+			$msg = lang('search_log_index_page_error', $m);
 			$this->log_message($msg, self::LOG_ERROR);
 			$this->_add_error($msg);
 			return FALSE;
@@ -827,10 +843,10 @@ class Fuel_search extends Fuel_advanced_module {
 			
 		foreach ($tags as $tag)
 		{
-
+			// get the xpath equation for querying if it is not already in xpath format
 			if (preg_match('#^<.+>#', $tag, $matches))
 			{
-				$tag = $this->get_xpath_from_node($query);
+				$tag = $this->get_xpath_from_node($tag);
 			}
 
 			// get the h1 value for the title
@@ -1095,7 +1111,7 @@ class Fuel_search extends Fuel_advanced_module {
 	 */	
 	function is_normal_url($url)
 	{
-		return !(strncasecmp($url, 'mailto:', 7) === 0 OR substr($url, 0, 1) == '#' OR strncasecmp($url, 'javascript:', 11) === 0);
+		return !(strncasecmp($url, 'mailto:', 7) === 0 OR strncasecmp($url, 'tel:', 4) === 0 OR substr($url, 0, 1) == '#' OR strncasecmp($url, 'javascript:', 11) === 0);
 	}
 	
 	// --------------------------------------------------------------------
@@ -1112,7 +1128,7 @@ class Fuel_search extends Fuel_advanced_module {
 	function get_location($url, $relative = NULL)
 	{
 		// if it's determined to be a relative path... we tack it on to the relative
-		if (!is_http_path($url) AND $this->is_normal_url($url) AND substr($url, 0, 1) != '/' AND !empty($relative))
+		if (!empty($url) AND !is_http_path($url) AND $this->is_normal_url($url) AND substr($url, 0, 1) != '/' AND !empty($relative))
 		{
 			$relative_parts = explode('/', $relative);
 			array_pop($relative_parts);

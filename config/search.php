@@ -26,8 +26,10 @@ $config['search']['indexing_enabled'] = TRUE;
 // the user agent used when indexing
 $config['search']['user_agent'] = 'FUEL';
 
-// value can be either "like" which will do a %word% query, "match" which will use the MATCH / AGAINST syntax OR "match boolean" 
-// which will do a match against in boolean mode. Use "match boolean" OR "like" if you have a small number of records
+// value can be either "like" which will do a %word% query, 
+// "match" which will use the MATCH / AGAINST syntax 
+// OR "match boolean" which will do a match against in boolean mode. 
+// Use "match boolean" OR "like" if you have a small number of records.
 $config['search']['query_type'] = 'match boolean';
 
 // search page content delimiters. used for scraping page content. Can be an HTML node or xpath syntax (e.g. //div[@id="main"])

@@ -10,4 +10,4 @@ CREATE TABLE `fuel_search` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `location` (`location`),
   FULLTEXT KEY `title` (`location`,`title`,`content`)
-) ENGINE=MyISAM AUTO_INCREMENT=846 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;

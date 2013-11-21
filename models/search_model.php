@@ -133,4 +133,47 @@ class Search_item_model extends Base_module_record {
 		return site_url($this->location);
 	}
 	
+	function get_excerpt($char_limit = 100, $start_word = NULL, $variance = 50)
+	{
+		$field = 'excerpt';
+		if (empty($this->_fields['excerpt']) OR strlen($this->_fields['excerpt']) < $char_limit)
+		{
+			$field = 'content';
+		}
+		return $this->excerpt($field, $char_limit, $start_word, $variance);
+	}
+
+	function get_content_excerpt($char_limit = 100, $start_word = NULL, $variance = 50)
+	{
+		return $this->exceprt('content', $char_limit, $start_word, $variance);
+	}
+
+	function excerpt($field, $char_limit = 100, $start_word = NULL, $variance = 50)
+	{
+
+		$excerpt = $this->_fields[$field];
+		$start_word_pos = stripos($excerpt, $start_word);
+
+		$start_pos = $start_word_pos - $variance;
+		if ($start_pos < 0)
+		{
+			$start_pos = 0;
+		}
+		
+		$excerpt = substr($excerpt, $start_pos);
+		if (!empty($char_limit))
+		{
+			$excerpt = character_limiter($excerpt, $char_limit);
+		}
+
+		if ($start_pos > 0)
+		{
+			// cut it to first word by looking for the first space
+			$start_pos2 = strpos($excerpt, ' ');
+			$excerpt = substr($excerpt, $start_pos2);
+
+			$excerpt = '&#8230;'.$excerpt;
+		}
+		return $excerpt;
+	}
 }
