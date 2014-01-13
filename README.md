@@ -1,5 +1,5 @@
 # SEARCH MODULE FOR FUEL CMS
-This is a [FUEL CMS](http://www.getfuelcms.com) search module for adding search like functionality including posts, categories, and commenting.
+This is a [FUEL CMS](http://www.getfuelcms.com) search module that can be used to crawl your site and index it's content.
 
 ## INSTALLATION
 There are a couple ways to install the module. If you are using GIT you can use the following method
