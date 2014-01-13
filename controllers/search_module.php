@@ -20,6 +20,10 @@ class Search_module extends Module {
 		if ($validate)
 		{
 			$this->_validate_user('search');
+
+			// to display the logout button in the top right of the admin
+			$load_vars['user'] = $this->fuel->auth->user_data();
+			$this->load->vars($load_vars);
 		}
 	}
 
