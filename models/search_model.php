@@ -145,7 +145,7 @@ class Search_item_model extends Base_module_record {
 
 	function get_content_excerpt($char_limit = 100, $start_word = NULL, $variance = 50)
 	{
-		return $this->exceprt('content', $char_limit, $start_word, $variance);
+		return $this->excerpt('content', $char_limit, $start_word, $variance);
 	}
 
 	function excerpt($field, $char_limit = 100, $start_word = NULL, $variance = 50)
