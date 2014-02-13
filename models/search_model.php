@@ -152,7 +152,7 @@ class Search_item_model extends Base_module_record {
 	{
 
 		$excerpt = $this->_fields[$field];
-		$start_word_pos = stripos($excerpt, $start_word);
+		$start_word_pos = mb_stripos($excerpt, $start_word);
 
 		$start_pos = $start_word_pos - $variance;
 		if ($start_pos < 0)
@@ -160,7 +160,7 @@ class Search_item_model extends Base_module_record {
 			$start_pos = 0;
 		}
 		
-		$excerpt = substr($excerpt, $start_pos);
+		$excerpt = mb_substr($excerpt, $start_pos);
 		if (!empty($char_limit))
 		{
 			$excerpt = character_limiter($excerpt, $char_limit);
@@ -169,8 +169,8 @@ class Search_item_model extends Base_module_record {
 		if ($start_pos > 0)
 		{
 			// cut it to first word by looking for the first space
-			$start_pos2 = strpos($excerpt, ' ');
-			$excerpt = substr($excerpt, $start_pos2);
+			$start_pos2 = mb_strpos($excerpt, ' ');
+			$excerpt = mb_substr($excerpt, $start_pos2);
 
 			$excerpt = '&#8230;'.$excerpt;
 		}
