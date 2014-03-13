@@ -148,11 +148,11 @@ class Search_item_model extends Base_module_record {
 		return $this->excerpt('content', $char_limit, $start_word, $variance);
 	}
 
-	function excerpt($field, $char_limit = 100, $start_word = NULL, $variance = 50)
+	function excerpt($field, $char_limit = 100, $start_word = '', $variance = 50)
 	{
 
 		$excerpt = $this->_fields[$field];
-		$start_word_pos = mb_stripos($excerpt, $start_word);
+		$start_word_pos = is_string($start_word) ? mb_stripos($excerpt, $start_word) : 0;
 
 		$start_pos = $start_word_pos - $variance;
 		if ($start_pos < 0)
