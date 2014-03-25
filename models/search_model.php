@@ -6,7 +6,8 @@ class Search_model extends Base_module_model {
 	
 	public $required = array('location', 'scope', 'title', 'content');
 	public $record_class = 'Search_item';
-
+	public $auto_encode_entities = array('title');
+	
 	public $tmp_table = 'fuel_search_tmp';
 	protected $_orig_table_name = 'search';
 

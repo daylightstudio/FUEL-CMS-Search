@@ -967,8 +967,8 @@ class Fuel_search extends Fuel_advanced_module {
 		}
 		$values['location'] = $this->get_location($values['location']);
 		$values['title'] = $this->format_title($values['title']);
-		$values['content'] = $this->clean($values['content']);
-		$values['excerpt'] = $this->clean($values['excerpt']);
+		$values['content'] = $this->clean($values['content'], false);
+		$values['excerpt'] = $this->clean($values['excerpt'], false);
 		$values['language'] = $this->clean($values['language']);
 		if (empty($values['location']))
 		{
@@ -1049,11 +1049,22 @@ class Fuel_search extends Fuel_advanced_module {
 	 * @param	string	HTML content to clean for search index
 	 * @return	boolean
 	 */	
-	function clean($content)
+	function clean($content, $encode = true)
 	{
 		global $UNI;
 		$content = $UNI->clean_string($content); // convert to UTF-8
-		$content = safe_htmlentities($content);
+		$content = zap_gremlins($content); // remove strange characters
+		
+		if ($encode)
+		{
+			$content = safe_htmlentities($content);	
+		}
+		else
+		{
+			// decode HTML entities so that they can be searched	
+			$content = html_entity_decode($content);
+		}
+		
 		$content = strip_tags($content);
 		$content = trim(preg_replace('#(\s)\s+|(\n)\n+|(\r)\r+#m', '$1', $content));
 		$content = trim($content);
