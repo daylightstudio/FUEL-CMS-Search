@@ -281,7 +281,7 @@ class Fuel_search extends Fuel_advanced_module {
 			}
 
 			// set to temp table if TRUE and if $clear_all is set to TRUE so as to make the indexing not appear broken while indexing
-			if ($this->user_tmp_table AND $clear_all)
+			if ($this->user_tmp_table AND $clear_all AND !empty($pages))
 			{
 				$this->CI->search_model->set_table($orig_table_name);
 				$this->switch_from_temp_table();
