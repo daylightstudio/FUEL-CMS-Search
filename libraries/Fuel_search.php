@@ -659,7 +659,7 @@ class Fuel_search extends Fuel_advanced_module {
 		
 		// execut the CURL request to scrape the page
 		$output = $this->CI->curl->exec();
-		
+
 		// get any errors
 		$error = $this->CI->curl->error();
 		if (!empty($error))
@@ -777,7 +777,6 @@ class Fuel_search extends Fuel_advanced_module {
 				$content .= implode('|', $content_arr);
 			}
 		}
-		
 		return $content;
 	}
 	
@@ -1053,7 +1052,22 @@ class Fuel_search extends Fuel_advanced_module {
 	{
 		global $UNI;
 		$content = $UNI->clean_string($content); // convert to UTF-8
-		$content = zap_gremlins($content); // remove strange characters
+
+		$cleaning_funcs = (array) $this->config('cleaning_funcs');
+		foreach($cleaning_funcs as $key => $func)
+		{
+			if (!is_numeric($key))
+			{
+				$params = $func;
+				$func = $key;
+			}
+			else
+			{
+				$params = array();
+			}
+			array_unshift($params, $content);
+			$content = call_user_func_array($func, $params);
+		}
 		
 		if ($encode)
 		{

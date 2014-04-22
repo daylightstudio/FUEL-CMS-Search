@@ -74,6 +74,9 @@ $config['search']['depth'] = 0;
 // use a temp table to store crawled information before switching to live table
 $config['search']['user_tmp_table'] = 0;
 
+// functions to call during the cleaning process of the content
+$config['search']['cleaning_funcs'] = array('zap_gremlins');
+
 // pagination
 $config['search']['pagination'] = array(
 		'per_page' => 10,
@@ -83,6 +86,7 @@ $config['search']['pagination'] = array(
 		'first_link' => lang('search_first_link'),
 		'last_link' => lang('search_last_link'),
 	);
+
 
 $config['search']['settings'] = array();
 $config['search']['settings']['user_agent'] = array();
