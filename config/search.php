@@ -72,7 +72,7 @@ $config['search']['min_length_search'] = 3;
 $config['search']['depth'] = 0;
 
 // use a temp table to store crawled information before switching to live table
-$config['search']['user_tmp_table'] = 0;
+$config['search']['use_tmp_table'] = TRUE;
 
 // functions to call during the cleaning process of the content
 $config['search']['cleaning_funcs'] = array('zap_gremlins');
