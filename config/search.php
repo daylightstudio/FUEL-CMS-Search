@@ -88,7 +88,9 @@ $config['search']['pagination'] = array(
 	);
 
 
+/* To allow users to modify under the settings section of the CMS, uncomment this area
 $config['search']['settings'] = array();
 $config['search']['settings']['user_agent'] = array();
 $config['search']['settings']['delimiters'] = array('default' => '<div id="main">');
+*/
 $config['search']['settings']['query_type'] = array('type' => 'select', 'options' => array('match' => 'match', 'match boolean' => 'match boolean', 'like' => 'like'));
