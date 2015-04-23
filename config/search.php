@@ -26,20 +26,26 @@ $config['search']['indexing_enabled'] = TRUE;
 // the user agent used when indexing
 $config['search']['user_agent'] = 'FUEL';
 
-// value can be either "like" which will do a %word% query, 
-// "match" which will use the MATCH / AGAINST syntax 
-// OR "match boolean" which will do a match against in boolean mode. 
+// value can be either "like" which will do a %word% query,
+// "match" which will use the MATCH / AGAINST syntax
+// OR "match boolean" which will do a match against in boolean mode.
 // Use "match boolean" OR "like" if you have a small number of records.
 $config['search']['query_type'] = 'match boolean';
 
 // search page content delimiters. used for scraping page content. Can be an HTML node or xpath syntax (e.g. //div[@id="main"])
 $config['search']['delimiters'] = array(
-	'<div id="main">', 
+	'<div id="main">',
 	'//meta[@name="keywords"]/@content',
 );
 
 // search page title tag (e.g. "title, h1")
 $config['search']['title_tag'] = array('title', 'h1');
+
+// keep the inner HTML for the title tag (useful if you need to keep italics - for example <h1>Species = <i>Abra Alba</i></h1>
+$config['search']['preserve_title_html'] = FALSE;  //set TRUE to keep HTML
+
+// Ignore what the robots.txt says should not be indexed and do it anyway
+$config['search']['ignore_robots'] = FALSE;  // set TRUE to ignore
 
 // search page for appropriate tag to save as excerpt tag (e.g. "p", "meta[@name="description"]/@content")
 $config['search']['excerpt_tag'] = array('p', '//meta[@name="description"]/@content');
@@ -47,7 +53,7 @@ $config['search']['excerpt_tag'] = array('p', '//meta[@name="description"]/@cont
 // search page for appropriate language value using the meta values or html lang attrubute (e.g. "p", "html[@lang]")
 $config['search']['language_tag'] = array('html[@lang]/@lang');
 
-// the URI locations of pages to exclude from the index. 
+// the URI locations of pages to exclude from the index.
 // You can also add them to the "robots.txt" file for your site
 $config['search']['exclude'] = array();
 
@@ -57,7 +63,7 @@ $config['search']['exclude'] = array();
 // AUTO will first check the sitemap (because it's faster), then will default to the crawl
 $config['search']['index_method'] = 'crawl';
 
-// whether to automatically index modules that have a preview_path specified. 
+// whether to automatically index modules that have a preview_path specified.
 // Default is TRUE and will automatically do it for all modules. If an array
 // is specified, then it will only index those in the array
 $config['search']['index_modules'] = TRUE;

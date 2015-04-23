@@ -3,7 +3,7 @@
  * FUEL CMS
  * http://www.getfuelcms.com
  *
- * An open source Content Management System based on the 
+ * An open source Content Management System based on the
  * Codeigniter framework (http://codeigniter.com)
  *
  * @package		FUEL CMS
@@ -18,7 +18,7 @@
 
 /**
  * FUEL search library
- * 
+ *
  * @package		FUEL CMS
  * @subpackage	Libraries
  * @category	Libraries
@@ -28,7 +28,7 @@
 // --------------------------------------------------------------------
 
 class Fuel_search extends Fuel_advanced_module {
-	
+
 	public $timeout = 20; // CURL timeout
 	public $connect_timeout = 10; // CURL connection timeout
 	public $title_limit = 100; // max character limit of the title of content
@@ -39,11 +39,11 @@ class Fuel_search extends Fuel_advanced_module {
 	public $use_tmp_table = TRUE; // use a temp table while indexing results
 	public static $crawled = array(); // used to capture crawled urls
 	protected $_logs = array(); // log of items indexed
-	
+
 	const LOG_ERROR = 'error';
 	const LOG_REMOVED = 'removed';
 	const LOG_INDEXED = 'indexed';
-	
+
 	/**
 	 * Constructor - Sets Fuel_search preferences and to any children
 	 *
@@ -61,9 +61,9 @@ class Fuel_search extends Fuel_advanced_module {
 		$this->load_model('search');
 		$this->CI->load->library('curl');
 	}
-	
+
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Query the database
 	 *
@@ -73,7 +73,7 @@ class Fuel_search extends Fuel_advanced_module {
 	 * @param	int
 	 * @param	int
 	 * @return	array
-	 */	
+	 */
 	function query($q = '', $limit = 100, $offset = 0, $excerpt_limit = 200)
 	{
 		$results = $this->CI->search_model->find_by_keyword($q, $limit, $offset, $excerpt_limit);
@@ -81,16 +81,16 @@ class Fuel_search extends Fuel_advanced_module {
 		$this->q = $q;
 		return $results;
 	}
-	
+
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Get the count of the returned rows. If no parameter is passed then it will assume the last query.
 	 *
 	 * @access	public
 	 * @param	string
 	 * @return	array
-	 */	
+	 */
 	function count($q = '')
 	{
 		if (empty($q))
@@ -100,23 +100,23 @@ class Fuel_search extends Fuel_advanced_module {
 		$count = $this->CI->search_model->find_by_keyword_count($q);
 		return $count;
 	}
-	
+
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Hook for updating an index item after a module save
-	 * 
+	 *
 	 * Used when something is saved in admin to automatically update the index
 	 *
 	 * @access	public
 	 * @param	object	search record
 	 * @return	boolean
-	 */	
+	 */
 	function after_save_hook($posted)
 	{
 		// if indexing is disabled, then we just return and don't continue'
 		if (!$this->config('indexing_enabled')) return;
-		
+
 		// grab the config values for what should be indexed on save
 		$index_modules = $this->config('index_modules');
 		$module = $this->CI->module;
@@ -126,15 +126,15 @@ class Fuel_search extends Fuel_advanced_module {
 		{
 			$module_obj = $this->CI->fuel->modules->get($module, FALSE);
 			$key_field = $module_obj->model()->key_field();
-			
+
 			if (!isset($posted[$key_field]))
 			{
 				return FALSE;
 			}
-			
+
 			$data = $module_obj->model()->find_by_key($posted[$key_field], 'array');
 			$location = $module_obj->url($data);
-			
+
 			if (!empty($location))
 			{
 				// now index the page... this takes too long
@@ -157,19 +157,19 @@ class Fuel_search extends Fuel_advanced_module {
 				}
 			}
 		}
-	}	
+	}
 
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Hook for removing an index item after a module save
-	 * 
+	 *
 	 * Used when something is deleted in admin to automatically remove from the index
 	 *
 	 * @access	public
 	 * @param	object	search record
 	 * @return	boolean
-	 */	
+	 */
 	function before_delete_hook($posted)
 	{
 		// grab the config values for what should be deleted
@@ -196,16 +196,16 @@ class Fuel_search extends Fuel_advanced_module {
 				}
 			}
 		}
-	}	
+	}
 
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Indexes the data for the search
 	 *
 	 * @access	public
 	 * @return	mixed
-	 */	
+	 */
 	function index($pages = array(), $scope = 'pages', $clear_all = FALSE)
 	{
 		// check if indexing is enabled first
@@ -229,12 +229,12 @@ class Fuel_search extends Fuel_advanced_module {
 					$this->CI->search_model->set_table($this->temp_table_name());
 				}
 			}
-			
+
 			$indexed = FALSE;
 
 			if (empty($pages))
 			{
-				
+
 				// if no pages provided, we load them all
 				$index_method = $this->config('index_method');
 
@@ -250,7 +250,7 @@ class Fuel_search extends Fuel_advanced_module {
 					$pages = $this->crawl_pages();
 					$indexed = TRUE;
 				}
-				
+
 				// default will check if there is a sitemap, and if not, will crawl
 				else
 				{
@@ -267,7 +267,7 @@ class Fuel_search extends Fuel_advanced_module {
 			if (!$indexed)
 			{
 				$pages = (array) $pages;
-				
+
 				// render the pages then look for delimiters within to get the content
 				foreach($pages as $location)
 				{
@@ -288,9 +288,9 @@ class Fuel_search extends Fuel_advanced_module {
 			}
 
 			return $pages;
-			
+
 		}
-		
+
 		// if indexing isn't enabled, we'll add it to the errors list
 		else
 		{
@@ -300,14 +300,14 @@ class Fuel_search extends Fuel_advanced_module {
 	}
 
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Checks to see if the page is indexable
 	 *
 	 * @access	public
 	 * @param	string
 	 * @return	boolean
-	 */	
+	 */
 	function is_indexable($location)
 	{
 		// sitemap.xml and robots.txt locations are automatically ignored
@@ -315,10 +315,10 @@ class Fuel_search extends Fuel_advanced_module {
 		{
 			return FALSE;
 		}
-		
+
 		// get pages to exclude
 		$exclude = (array)$this->config('exclude');
-		
+
 		if (!empty($exclude))
 		{
 			// loop through the exclude array looking for wild-cards
@@ -326,7 +326,7 @@ class Fuel_search extends Fuel_advanced_module {
 			{
 				// convert wild-cards to RegEx
 				$val = str_replace(':any', '.+', str_replace(':num', '[0-9]+', $val));
-	
+
 				// does the RegEx match? If so, it's not indexable'
 				if (preg_match('#^'.$val.'$#', $location))
 				{
@@ -334,7 +334,7 @@ class Fuel_search extends Fuel_advanced_module {
 				}
 			}
 		}
-		
+
 		// now check against the robots.txt
 		if (!$this->check_robots_txt($location))
 		{
@@ -342,10 +342,10 @@ class Fuel_search extends Fuel_advanced_module {
 		}
 		return TRUE;
 	}
-	
-	
+
+
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Crawls the site for locations to be indexed
 	 *
@@ -354,7 +354,7 @@ class Fuel_search extends Fuel_advanced_module {
 	 * @param	boolean
 	 * @param	boolean
 	 * @return	array
-	 */	
+	 */
 	function crawl_pages($location = 'home', $index_content = TRUE, $depth = 0, $parent = NULL)
 	{
 
@@ -363,20 +363,20 @@ class Fuel_search extends Fuel_advanced_module {
 		{
 			$location = $this->site_url();
 		}
-		
+
 		$html = '';
-		
+
 		// grab the HTML of the page to get all the links
 		if ($this->is_local_url($location) AND $this->is_indexable($location))
 		{
 			$html = $this->scrape_page($location, FALSE, $parent);
 		}
-		
+
 		// index the content at the same time to save on CURL bandwidth
 		if (!empty($html))
 		{
 			$indexed = FALSE;
-			
+
 			if ($index_content)
 			{
 				$url = $this->get_location($location);
@@ -386,7 +386,7 @@ class Fuel_search extends Fuel_advanced_module {
 					self::$crawled[$url] = $url;
 				}
 			}
-		
+
 			// the page must be properly indexed above to continue on and not contain a no follow meta tag
 			if ($indexed AND !preg_match('#<head>.*<meta[^>]+name=([\'"])robots\\1[^>]+content=([\'"]).*nofollow.*\\2#Uims', $html))
 			{
@@ -412,9 +412,9 @@ class Fuel_search extends Fuel_advanced_module {
 								$config_depth = (int) $this->config('depth');
 								if ($config_depth === 0 OR (is_int($depth) AND $depth < $config_depth))
 								{
-									$this->crawl_pages($url, $index_content = TRUE, $depth, $location, $parent);	
+									$this->crawl_pages($url, $index_content = TRUE, $depth, $location, $parent);
 								}
-								
+
 								// add the url in the indexed array
 								self::$crawled[$url] = $url;
 
@@ -428,9 +428,9 @@ class Fuel_search extends Fuel_advanced_module {
 		}
 		return array_values(self::$crawled);
 	}
-	
+
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Indexes a single page
 	 *
@@ -438,7 +438,7 @@ class Fuel_search extends Fuel_advanced_module {
 	 * @param	string
 	 * @param	string
 	 * @return	array
-	 */	
+	 */
 	function index_page($location, $html = NULL, $parent = NULL)
 	{
 		// check if the page is indexable before continuing
@@ -446,7 +446,7 @@ class Fuel_search extends Fuel_advanced_module {
 		{
 			return FALSE;
 		}
-		
+
 		// get the page HTML need to use CURL instead of render_page because one show_404 error will halt the indexing
 		if (empty($html))
 		{
@@ -466,13 +466,13 @@ class Fuel_search extends Fuel_advanced_module {
 
 		// get the proper scope for the page
 		$scope = $this->get_location_scope($location);
-		
+
 		// get the xpath object so we can query the content of the page
 		$xpath = $this->page_xpath($html);
-		
+
 		// get the content
 		$content = $this->find_indexable_content($xpath);
-		
+
 		// get the title
 		$title = $this->find_page_title($xpath);
 
@@ -501,17 +501,17 @@ class Fuel_search extends Fuel_advanced_module {
 			}
 		}
 		return TRUE;
-		
+
 	}
 
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Parses the sitemap.xml file of the site and returns an array of pages to index
 	 *
 	 * @access	public
 	 * @return	array
-	 */	
+	 */
 	function sitemap_pages()
 	{
 		$locations = array();
@@ -521,16 +521,16 @@ class Fuel_search extends Fuel_advanced_module {
 		{
 			return FALSE;
 		}
-		
-		$dom = new DOMDocument; 
+
+		$dom = new DOMDocument;
 		$dom->preserveWhiteSpace = FALSE;
-		
+
 		// remove the opening xml tag to prevent parsing issues
 		$sitemap_xml = preg_replace('#<\?xml.+\?>#U', '', $sitemap_xml);
 
-		@$dom->loadXML($sitemap_xml); 
+		@$dom->loadXML($sitemap_xml);
 		$locs = $dom->getElementsByTagName('loc');
-		
+
 		$site_url = $this->site_url();
 		foreach($locs as $node)
 		{
@@ -541,83 +541,90 @@ class Fuel_search extends Fuel_advanced_module {
 	}
 
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Parses the sitemap.xml file of the site and returns an array of pages to index
 	 *
 	 * @access	public
 	 * @param	string
 	 * @return	boolean
-	 */	
+	 */
 	function check_robots_txt($location)
 	{
-		 // static so we only do it once per execution
-		static $robot_txt;
-		static $disallow; 
-		
-		// if no robots.txt then we just return TRUE
-		if ($robot_txt === FALSE) return TRUE;
-		
-		if (empty($robot_txt))
-		{
-			$robot_txt = $this->site_url('robots.txt');
-			
-			// we will scrape the page instead of file_get_contents because the page may be dynamically generated by FUEL
-			$robot_txt = $this->scrape_page($robot_txt);
-			if (!$robot_txt)
-			{
-				// again... no robots.txt, return TRUE
-				return TRUE;
-			}
-		}
-		
-		if (empty($disallow))
-		{
-			$disallow = array();
-			$lines = explode("\n", $robot_txt);
-			$check = FALSE;
-			foreach($lines as $l)
-			{
-				// # symbol is for comments in regex in case you were wondering
-				if (preg_match('/^user-agent:([^#]+)/i', $l, $matches1))
-				{
-					$agent = trim($matches1[1]);
-					$check = ($agent == '*' OR $agent == $this->config('user_agent')) ? TRUE : FALSE;
-				}
+	   if ($this->config('ignore_robots') == FALSE)
+	   {
+   		 // static so we only do it once per execution
+   		static $robot_txt;
+   		static $disallow;
 
-				// check disallow
-				if ($check AND preg_match('/disallow:([^#]+)/i', $l, $matches2))
-				{
-					$dis = trim($matches2[1]);
-					if ($dis != '')
-					{
-						$disallow[] = $dis;
-					}
-				}
-			}
-		}
-		
-		// loop through the disallow and if it matches the location value, then we return FALSE
-		foreach($disallow as $d)
-		{
-			$d = ltrim($d, '/'); // remove begining slash
-			$d = str_replace('*', '__', $d); // escape wildcards with a character that won't be escaped by preg_quote'
-			$d = preg_quote($d); // escape special regex characters (like periods)
-			$d = str_replace('__', '.*', $d); // convert "__" (transformed from wildcard) to regex .* (0 or more of anything)
-			if ($d == '/')
-			{
-				$d = '.*';
-			}
-			if (preg_match('#'.$d.'#', $location))
-			{
-				return FALSE;
-			}
-		}
-		return TRUE;
+   		// if no robots.txt then we just return TRUE
+   		if ($robot_txt === FALSE) return TRUE;
+
+   		if (empty($robot_txt))
+   		{
+   			$robot_txt = $this->site_url('robots.txt');
+
+   			// we will scrape the page instead of file_get_contents because the page may be dynamically generated by FUEL
+   			$robot_txt = $this->scrape_page($robot_txt);
+   			if (!$robot_txt)
+   			{
+   				// again... no robots.txt, return TRUE
+   				return TRUE;
+   			}
+   		}
+
+   		if (empty($disallow))
+   		{
+   			$disallow = array();
+   			$lines = explode("\n", $robot_txt);
+   			$check = FALSE;
+   			foreach($lines as $l)
+   			{
+   				// # symbol is for comments in regex in case you were wondering
+   				if (preg_match('/^user-agent:([^#]+)/i', $l, $matches1))
+   				{
+   					$agent = trim($matches1[1]);
+   					$check = ($agent == '*' OR $agent == $this->config('user_agent')) ? TRUE : FALSE;
+   				}
+
+   				// check disallow
+   				if ($check AND preg_match('/disallow:([^#]+)/i', $l, $matches2))
+   				{
+   					$dis = trim($matches2[1]);
+   					if ($dis != '')
+   					{
+   						$disallow[] = $dis;
+   					}
+   				}
+   			}
+   		}
+
+   		// loop through the disallow and if it matches the location value, then we return FALSE
+   		foreach($disallow as $d)
+   		{
+   			$d = ltrim($d, '/'); // remove begining slash
+   			$d = str_replace('*', '__', $d); // escape wildcards with a character that won't be escaped by preg_quote'
+   			$d = preg_quote($d); // escape special regex characters (like periods)
+   			$d = str_replace('__', '.*', $d); // convert "__" (transformed from wildcard) to regex .* (0 or more of anything)
+   			if ($d == '/')
+   			{
+   				$d = '.*';
+   			}
+   			if (preg_match('#'.$d.'#', $location))
+   			{
+   				return FALSE;
+   			}
+   		}
+   		return TRUE;
+	   }
+	   else
+	   {
+	      return TRUE;
+	   }
 	}
-	
+
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * CURLs the page and gets the content
 	 *
@@ -625,7 +632,7 @@ class Fuel_search extends Fuel_advanced_module {
 	 * @param	string
 	 * @param	boolean
 	 * @return	string
-	 */	
+	 */
 	function scrape_page($url, $just_header = FALSE, $parent = NULL)
 	{
 		if (!is_http_path($url))
@@ -656,7 +663,7 @@ class Fuel_search extends Fuel_advanced_module {
 
 		// add a CURL session
 		$this->CI->curl->add_session($url, $opts);
-		
+
 		// execut the CURL request to scrape the page
 		$output = $this->CI->curl->exec();
 
@@ -666,10 +673,10 @@ class Fuel_search extends Fuel_advanced_module {
 		{
 			$this->_add_error($error);
 		}
-		
+
 		// if the page doesn't return a 200 status, we don't scrape
 		$http_code = $this->CI->curl->info('http_code');
-		
+
 		if ($http_code >= 400)
 		{
 			$m = 'HTTP Code '.$http_code.' for <a href="'.$this->site_url($url).'" target="_blank">'.$url.'</a>';
@@ -682,29 +689,29 @@ class Fuel_search extends Fuel_advanced_module {
 			$this->_add_error($msg);
 			return FALSE;
 		}
-		
+
 		// remove javascript
 		$output = strip_javascript($output);
-		
+
 		return $output;
 	}
 
 	// --------------------------------------------------------------------
-	
+
 	/**
-	 * Returns the DomXpath 
+	 * Returns the DomXpath
 	 *
 	 * @access	public
 	 * @param	string	page content to search
 	 * @param	string
 	 * @return	array
-	 */	
+	 */
 	function page_xpath($content, $type = 'html')
 	{
 		// turn off errors for loading HTML into dom
-		$old_setting = libxml_use_internal_errors(TRUE); 
+		$old_setting = libxml_use_internal_errors(TRUE);
 		libxml_clear_errors();
-		
+
 		$dom = new DOMDocument();
 		$dom->preserveWhiteSpace = FALSE;
 		$dom->substituteEntities = FALSE;
@@ -723,29 +730,29 @@ class Fuel_search extends Fuel_advanced_module {
 		{
 			$this->_add_error(lang('search_error_parsing_content'));
 		}
-		
+
 		// change errors back to original settings
 		libxml_clear_errors();
-		libxml_use_internal_errors($old_setting); 
-		
+		libxml_use_internal_errors($old_setting);
+
 		// create xpath object to do some querying
 		$xpath = new DOMXPath($dom);
 		return $xpath;
 	}
-	
+
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Searches for index related content within html content
 	 *
 	 * @access	public
 	 * @param	object	DOMXpath
 	 * @return	array
-	 */	
+	 */
 	function find_indexable_content($xpath)
 	{
 		$content = '';
-		
+
 		// get delimiters
 		$delimiters = $this->config('delimiters');
 
@@ -779,30 +786,40 @@ class Fuel_search extends Fuel_advanced_module {
 		}
 		return $content;
 	}
-	
+
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Searches for title
 	 *
 	 * @access	public
 	 * @param	object	DOMXpath
 	 * @return	array
-	 */	
+	 */
 	function find_page_title($xpath)
 	{
-		return $this->_find_tag($xpath, $this->config('title_tag'));
+		//return $this->_find_tag($xpath, $this->config('title_tag'));
+		if ($this->config('preserve_title_html'))
+		{
+         $t = $this->_find_title_tag($xpath, $this->config('title_tag'));
+      }
+      else
+      {
+         $t = $this->_find_tag($xpath, $this->config('title_tag'));
+      }
+
+      return $t;
 	}
 
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Searches for excerpt
 	 *
 	 * @access	public
 	 * @param	object	DOMXpath
 	 * @return	array
-	 */	
+	 */
 	function find_excerpt($xpath)
 	{
 		return $this->_find_tag($xpath, $this->config('excerpt_tag'));
@@ -810,14 +827,14 @@ class Fuel_search extends Fuel_advanced_module {
 	}
 
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Searches for language value
 	 *
 	 * @access	public
 	 * @param	object	DOMXpath
 	 * @return	array
-	 */	
+	 */
 	function find_language($xpath)
 	{
 		return $this->_find_tag($xpath, $this->config('language_tag'));
@@ -825,21 +842,21 @@ class Fuel_search extends Fuel_advanced_module {
 	}
 
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Searches for title
 	 *
 	 * @access	public
 	 * @param	object	DOMXpath
 	 * @return	array
-	 */	
+	 */
 	function _find_tag($xpath, $tags)
 	{
 		if (is_string($tags))
 		{
 			$tags = preg_split('#,\s*#', $tags);
 		}
-			
+
 		foreach ($tags as $tag)
 		{
 			// get the xpath equation for querying if it is not already in xpath format
@@ -850,7 +867,7 @@ class Fuel_search extends Fuel_advanced_module {
 
 			// get the h1 value for the title
 			$tag_results = $xpath->query('//'.$tag);
-			
+
 			if ($tag_results->length)
 			{
 				foreach($tag_results as $t)
@@ -859,22 +876,68 @@ class Fuel_search extends Fuel_advanced_module {
 					return $value;
 				}
 			}
-			
+
 		}
-		
+
 		return FALSE;
+	}
+
+	// --------------------------------------------------------------------
+
+	/**
+	 * Searches for title preserving inner tags
+	 *
+	 * @access	public
+	 * @param	object	DOMXpath
+	 * @return	array
+	 */
+	function _find_title_tag($xpath, $tags)
+	{
+	   if (is_string($tags))
+	   {
+	      $tags = preg_split('#,\s*#', $tags);
+	   }
+
+	   foreach ($tags as $tag)
+	   {
+	      // get the xpath equation for querying if it is not already in xpath format
+	      if (preg_match('#^<.+>#', $tag, $matches))
+	      {
+	         $tag = $this->get_xpath_from_node($tag);
+	      }
+
+	      // get the h1 value for the title
+	      $tag_results = $xpath->query('//'.$tag);
+
+	      if ($tag_results->length)
+	      {
+	         foreach($tag_results as $t)
+	         {
+	            //$value = (string) $t->nodeValue;
+	            $innerHTML = '';
+	            $children = $t->childNodes;
+	            foreach ($children as $child) {
+	               $innerHTML .= $child->ownerDocument->saveXML( $child );
+	            }
+	            return $innerHTML;
+	         }
+	      }
+
+	   }
+
+	   return FALSE;
 	}
 
 
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Returns the xpath syntax based on the node string (e.g. <div id="main">)
 	 *
 	 * @access	public
 	 * @param	string	node string
 	 * @return	string
-	 */	
+	 */
 	function get_xpath_from_node($node)
 	{
 		$node_trimmed = trim($node, '<>');
@@ -889,20 +952,20 @@ class Fuel_search extends Fuel_advanced_module {
 		}
 		return $xpath_str;
 	}
-	
+
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Returns scope based on the url by looking at the preview paths
 	 *
 	 * @access	public
 	 * @param	string	url
 	 * @return	string
-	 */	
+	 */
 	function get_location_scope($location)
 	{
 		static $preview_paths;
-		
+
 		if (is_null($preview_paths))
 		{
 			// get all the preview paths
@@ -917,7 +980,7 @@ class Fuel_search extends Fuel_advanced_module {
 				}
 			}
 		}
-		
+
 		if (is_array($preview_paths))
 		{
 			foreach($preview_paths as $mod => $path)
@@ -936,10 +999,10 @@ class Fuel_search extends Fuel_advanced_module {
 		}
 		return 'pages';
 	}
-	
-	
+
+
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Creates a record in the search table. Will overwrite if the same location/model exist
 	 *
@@ -948,7 +1011,7 @@ class Fuel_search extends Fuel_advanced_module {
 	 * @param	string
 	 * @param	string
 	 * @return	boolean
-	 */	
+	 */
 	function create($location, $content = NULL, $title = NULL, $excerpt = NULL, $scope = 'page')
 	{
 		$values = array();
@@ -965,7 +1028,10 @@ class Fuel_search extends Fuel_advanced_module {
 			$values = $location;
 		}
 		$values['location'] = $this->get_location($values['location']);
-		$values['title'] = $this->format_title($values['title']);
+		//$values['title'] = $this->format_title($values['title']);
+		if (!$this->config('preserve_title_html')) {
+         $values['title'] = $this->format_title($values['title']);
+		}
 		$values['content'] = $this->clean($values['content'], false);
 		$values['excerpt'] = $this->clean($values['excerpt'], false);
 		$values['language'] = $this->clean($values['language']);
@@ -995,7 +1061,7 @@ class Fuel_search extends Fuel_advanced_module {
 	}
 
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Removes a record in the search table
 	 *
@@ -1003,18 +1069,18 @@ class Fuel_search extends Fuel_advanced_module {
 	 * @param	string	location
 	 * @param	string	scope
 	 * @return	boolean
-	 */	
+	 */
 	function remove($location, $scope = NULL)
 	{
 		$location = $this->get_location($location);
-		
+
 		$where['location'] = $location;
 		if (!empty($scope))
 		{
 			$where['scope'] = $scope;
 		}
 		$deleted = $this->CI->search_model->delete($where);
-		
+
 		if ($deleted)
 		{
 			$msg = lang('search_log_index_removed', '<a href="'.$this->site_url($location).'" target="_blank">'.$location.'</a>');
@@ -1023,31 +1089,31 @@ class Fuel_search extends Fuel_advanced_module {
 		}
 		return FALSE;
 	}
-	
+
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Clears the entire search index
 	 *
 	 * @access	public
 	 * @return	void
-	 */	
+	 */
 	function clear_all()
 	{
 		$this->CI->search_model->truncate();
 	}
 
 	// --------------------------------------------------------------------
-	
+
 	/**
-	 * Cleans content to make it more searchable. 
-	 * 
+	 * Cleans content to make it more searchable.
+	 *
 	 * The find_indexable_content already cleans up content in most cases
 	 *
 	 * @access	public
 	 * @param	string	HTML content to clean for search index
 	 * @return	boolean
-	 */	
+	 */
 	function clean($content, $encode = true)
 	{
 		global $UNI;
@@ -1068,47 +1134,47 @@ class Fuel_search extends Fuel_advanced_module {
 			array_unshift($params, $content);
 			$content = call_user_func_array($func, $params);
 		}
-		
+
 		if ($encode)
 		{
-			$content = safe_htmlentities($content);	
+			$content = safe_htmlentities($content);
 		}
 		else
 		{
-			// decode HTML entities so that they can be searched	
+			// decode HTML entities so that they can be searched
 			$content = html_entity_decode($content);
 		}
-		
+
 		$content = strip_tags($content);
 		$content = trim(preg_replace('#(\s)\s+|(\n)\n+|(\r)\r+#m', '$1', $content));
 		$content = trim($content);
 		return $content;
 	}
-	
+
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Cleans and truncates the title if it's too long
-	 * 
+	 *
 	 * @access	public
 	 * @param	string	title
 	 * @return	boolean
-	 */	
+	 */
 	function format_title($title)
 	{
 		$title = character_limiter($this->clean($title), $this->title_limit);
 		return $title;
 	}
-	
+
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Determines whether the url is local to the site or not
-	 * 
+	 *
 	 * @access	public
 	 * @param	string	url
 	 * @return	boolean
-	 */	
+	 */
 	function is_local_url($url)
 	{
 		if (!$this->is_normal_url($url))
@@ -1126,30 +1192,30 @@ class Fuel_search extends Fuel_advanced_module {
 	}
 
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Determines whether the url contains a normal link
-	 * 
+	 *
 	 * @access	public
 	 * @param	string	url
 	 * @return	boolean
-	 */	
+	 */
 	function is_normal_url($url)
 	{
 		return !(strncasecmp($url, 'mailto:', 7) === 0 OR strncasecmp($url, 'tel:', 4) === 0 OR substr($url, 0, 1) == '#' OR strncasecmp($url, 'javascript:', 11) === 0);
 	}
-	
+
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Return the URI part of a URL
-	 * 
+	 *
 	 * @access	public
 	 * @param	string	url
 	 * @param	string	relative to the page (optional)
 	 * @return	string
-	 */	
-	
+	 */
+
 	function get_location($url, $relative = NULL)
 	{
 		// if it's determined to be a relative path... we tack it on to the relative
@@ -1172,19 +1238,19 @@ class Fuel_search extends Fuel_advanced_module {
 		$url = str_replace('?lang='.$this->fuel->language->default_option(), '', $url);
 		return $url;
 	}
-	
+
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Adds an item to the index log
-	 * 
+	 *
 	 * Used when printing out the index log informaiton
 	 *
 	 * @access	public
 	 * @param	string	Log message
 	 * @param	string	Type of log message
 	 * @return	void
-	 */	
+	 */
 	function log_message($msg, $type = self::LOG_ERROR)
 	{
 		if (Fuel_search::is_cli())
@@ -1192,29 +1258,29 @@ class Fuel_search extends Fuel_advanced_module {
 			$msg = strip_tags($msg);
 			echo $msg."\n";
 		}
-		$this->_logs[$type][] = $msg;	
+		$this->_logs[$type][] = $msg;
 	}
-	
+
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Returns an array of log messages
-	 * 
+	 *
 	 * Used when printing out the index log informaiton
 	 *
 	 * @access	public
 	 * @return	array
-	 */	
+	 */
 	function logs()
 	{
 		return $this->_logs;
 	}
 
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Adds an item to the index log
-	 * 
+	 *
 	 * Used when printing out the index log informaiton
 	 *
 	 * @access	public
@@ -1222,12 +1288,12 @@ class Fuel_search extends Fuel_advanced_module {
 	 * @param	string
 	 * @param	boolean
 	 * @return	string
-	 */	
+	 */
 	function display_log($type = 'all', $tag = 'span', $return = FALSE)
 	{
 		$str = '';
 		$types = array(self::LOG_ERROR, self::LOG_REMOVED, self::LOG_INDEXED);
-		
+
 		if (is_string($type))
 		{
 			if (empty($type) OR !in_array($type, $types))
@@ -1261,23 +1327,23 @@ class Fuel_search extends Fuel_advanced_module {
 				}
 			}
 		}
-		
+
 		return $str;
 	}
 
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Generates the proper URL taking into account in base_url value specified
-	 * 
+	 *
 	 * @access	public
 	 * @param	string
 	 * @return	string
-	 */	
+	 */
 	function site_url($url = '')
 	{
 		$base_url = $this->config('base_url');
-		
+
 		if (!empty($base_url))
 		{
 			$url = trim($url, '/');
@@ -1292,13 +1358,13 @@ class Fuel_search extends Fuel_advanced_module {
 	}
 
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Creates a temp table to store results
-	 * 
+	 *
 	 * @access	public
 	 * @return	void
-	 */	
+	 */
 	function create_temp_table()
 	{
 		$this->CI->load->dbforge();
@@ -1317,26 +1383,26 @@ class Fuel_search extends Fuel_advanced_module {
 	}
 
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Returns temp table name
-	 * 
+	 *
 	 * @access	public
 	 * @return	string
-	 */	
+	 */
 	function temp_table_name()
 	{
 		return $this->CI->search_model->table_name().'_tmp';
 	}
 
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Drops the temp table
-	 * 
+	 *
 	 * @access	public
 	 * @return	void
-	 */	
+	 */
 	function switch_from_temp_table()
 	{
 		$this->CI->load->dbforge();
@@ -1358,13 +1424,13 @@ class Fuel_search extends Fuel_advanced_module {
 	}
 
 	// --------------------------------------------------------------------
-	
+
 	/**
 	 * Convenience static method for determining whether the script is being run via CLI
-	 * 
+	 *
 	 * @access	public
 	 * @return	boolean
-	 */	
+	 */
 	static public function is_cli()
 	{
 		$is_cli = (php_sapi_name() == 'cli' or defined('STDIN')) ? TRUE : FALSE;
