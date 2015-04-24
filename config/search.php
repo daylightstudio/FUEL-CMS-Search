@@ -41,6 +41,12 @@ $config['search']['delimiters'] = array(
 // search page title tag (e.g. "title, h1")
 $config['search']['title_tag'] = array('title', 'h1');
 
+// keep the inner HTML for the title tag (useful if you need to keep italics - for example <h1>Species = <i>Abra Alba</i></h1>
+$config['search']['preserve_title_html'] = FALSE;  //set TRUE to keep HTML
+
+// Ignore what the robots.txt says should not be indexed and do it anyway
+$config['search']['ignore_robots'] = FALSE;  // set TRUE to ignore
+
 // search page for appropriate tag to save as excerpt tag (e.g. "p", "meta[@name="description"]/@content")
 $config['search']['excerpt_tag'] = array('p', '//meta[@name="description"]/@content');
 
