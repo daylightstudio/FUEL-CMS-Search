@@ -12,7 +12,8 @@
 		$(function(){
 			$('#Index').on('click', function(){
 				$('.loader').show();
-				var params = {pages: $('#pages').val() };
+				var csrf = $('#csrf_test_name').val();
+				var params = {pages: $('#pages').val(), csrf_test_name: csrf };
 				$.post('<?=fuel_url('tools/search/index_site')?>', params, function(html){
 					$('#search_index_results').html(html);
 					$('.loader').hide();
