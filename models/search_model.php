@@ -31,10 +31,12 @@ class Search_model extends Base_module_model {
 		$this->db->select($this->_tables['search'].'.content');
 		$this->db->select($this->_tables['search'].'.language');
 		$this->db->select('IF(excerpt = "", SUBSTRING('.$this->_tables['search'].'.content, 1, '.$excerpt_limit.'), excerpt) AS excerpt', FALSE);
+		$limit = (int) $limit;
 		$this->db->limit($limit);
 		
 		if (!empty($offset))
 		{
+			$offset = (int) $offset;
 			$this->db->offset($offset);
 		}
 		$results = $this->find_all();
