@@ -45,7 +45,7 @@ provide an array of page locations that you'd like to exclude. It excepts a simi
 <h3>CLI</h3>
 <p>Indexing the site can also be done via the CLI like so</p>
 <pre class="brush: php">
-&gt;php index.php fuel/tools/search/reindex
+&gt;php index.php fuel/tools/search/index_site
 </pre>
 <p class="important">If you run it via the CLI, you may need to change the search configurations <dfn>base_url</dfn> value by creating 
  a new configuration file at <span class="file">fuel/application/config/search.php</span> with the base URL value of your site:</p>
