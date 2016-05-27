@@ -1,6 +1,6 @@
 <?php if (!defined('BASEPATH')) exit('No direct script access allowed'); 
 
-require_once(FUEL_PATH.'models/base_module_model.php');
+require_once(FUEL_PATH.'models/'.((FUEL_VERSION < 1.4) ? 'b' : 'B').'ase_module_model.php');
 
 class Search_model extends Base_module_model {
 	
