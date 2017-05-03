@@ -1372,7 +1372,7 @@ class Fuel_search extends Fuel_advanced_module {
 		$tmp_table_name = $this->temp_table_name();
 
 		// drop temp table
-		$this->CI->dbforge->drop_table($tmp_table_name);
+		$this->CI->dbforge->drop_table($tmp_table_name, TRUE);
 
 		$install_path = SEARCH_PATH.'install/fuel_search_install.sql';
 		$install_sql = file_get_contents($install_path);
