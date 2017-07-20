@@ -217,13 +217,13 @@ class Fuel_search extends Fuel_advanced_module {
 			// clear out the entire index
 			if ($clear_all)
 			{
-				if (!$this->use_tmp_table)
+				if (!$this->config('use_tmp_table'))
 				{
 					$this->clear_all();
 				}
 
 				// set to temp table if TRUE and if $clear_all is set to TRUE so as to make the indexing not appear broken while indexing
-				if ($this->use_tmp_table)
+				if ($this->config('use_tmp_table'))
 				{
 					$this->create_temp_table();
 					$this->CI->search_model->set_table($this->temp_table_name());
@@ -281,7 +281,7 @@ class Fuel_search extends Fuel_advanced_module {
 			}
 
 			// set to temp table if TRUE and if $clear_all is set to TRUE so as to make the indexing not appear broken while indexing
-			if ($this->use_tmp_table AND $clear_all AND !empty($pages))
+			if ($this->config('use_tmp_table') AND $clear_all AND !empty($pages))
 			{
 				$this->CI->search_model->set_table($orig_table_name);
 				$this->switch_from_temp_table();
@@ -1418,9 +1418,6 @@ class Fuel_search extends Fuel_advanced_module {
 
 		// drop backup table
 		$this->CI->dbforge->drop_table($new_table_bak);
-
-		// drop temp table
-		$this->CI->dbforge->drop_table($tmp_table_name);
 	}
 
 	// --------------------------------------------------------------------
