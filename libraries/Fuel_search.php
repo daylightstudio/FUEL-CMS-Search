@@ -1418,9 +1418,6 @@ class Fuel_search extends Fuel_advanced_module {
 
 		// drop backup table
 		$this->CI->dbforge->drop_table($new_table_bak);
-
-		// drop temp table
-		$this->CI->dbforge->drop_table($tmp_table_name);
 	}
 
 	// --------------------------------------------------------------------
