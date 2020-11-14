@@ -1,5 +1,5 @@
 <?php
-require_once(FUEL_PATH.'/controllers/module.php');
+require_once(FUEL_PATH.'/controllers/Module.php');
 
 class Search_module extends Module {
 	
