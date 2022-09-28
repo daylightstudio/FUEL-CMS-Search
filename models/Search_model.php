@@ -56,7 +56,7 @@ class Search_model extends Base_module_model {
 	{
 		$CI =& get_instance();
 		$full_text_fields = array('location', 'title', 'content');
-		$full_text_indexed = implode($full_text_fields, ', ');
+		$full_text_indexed = implode(', ', $full_text_fields);
 	
 		$q = trim(strtolower($q)); // trim the right and left from whitespace
 		$q = preg_replace("#([[:space:]]{2,})#",' ',$q); // remove multiple spaces
